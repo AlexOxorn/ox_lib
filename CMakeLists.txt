@@ -48,7 +48,7 @@ function(add_sources VAR)
 endfunction()
 
 add_headers(OX_HEADERS algorithms.h bytes.h common.h formating.h terminal.h types.h)
-add_sources(OX_SOURCES terminal.cpp)
+add_sources(OX_SOURCES terminal.cpp bytes.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)

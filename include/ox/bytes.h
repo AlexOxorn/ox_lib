@@ -56,6 +56,8 @@ namespace ox {
 		*data = bswap(*data);
 	};
 
+    void swap(void* data, int size, int length = 1);
+
 	template <std::integral T>
 	inline T from_big_endian(T data){
 		swap<T>(reinterpret_cast<u8*>(&data));
