@@ -25,9 +25,10 @@ namespace ox {
     > {};
 
     template<typename T>
-    using is_endianable_v<T> = is_endianable<T>::value;
+    using is_endianable_v = is_endianable<T>::value;
 
-    concept endianable = is_endianable_v<T>;
+    template<typename T>
+    concept endianable = is_endianable<T>::value;
 }
 
 
