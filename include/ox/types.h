@@ -28,7 +28,7 @@ namespace ox {
     inline constexpr bool is_endianable_v = is_endianable<T>::value;
 
     template<typename T>
-    concept endianable = is_endianable<T>::value;
+    concept endianable = is_endianable_v<T>;
 }
 
 
