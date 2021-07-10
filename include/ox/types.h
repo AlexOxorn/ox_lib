@@ -72,6 +72,14 @@ namespace ox {
             return (T*)addr;
         }
     };
+
+    template <>
+    class ptr32<void> {
+        unsigned addr;
+    public:
+        ptr32(unsigned pAddr) :addr{pAddr} {};
+        ptr32() = default;
+    };
 }
 
 
