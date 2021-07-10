@@ -76,13 +76,27 @@ namespace ox {
         }
     };
 
-    template <>
-    class ptr<void> {
-        unsigned addr;
+    template <std::integral base_type=u32>
+    class ptr<void, base_type> {
+        base_type addr;
     public:
-        ptr(unsigned pAddr) :addr{pAddr} {};
+        ptr(base_type pAddr) :addr{pAddr} {};
         ptr() = default;
+
+        operator void*() {
+            return (T*)addr;
+        }
+
+        operator base_type() {
+            return addr;
+        }
     };
+
+
+    template <typename T>
+    struct triple {
+        T x, y, z;
+    }
 }
 
 
