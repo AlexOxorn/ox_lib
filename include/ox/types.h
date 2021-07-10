@@ -34,7 +34,6 @@ namespace ox {
     class ptr32 {
         u32 addr;
     public:
-        ptr32(u32 pAddr) :addr{pAddr} {};
         ptr32() = default;
 
         T operator*() {
