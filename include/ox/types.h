@@ -72,7 +72,7 @@ namespace ox {
         }
 
         operator base_type() {
-            reutrn addr;
+            return addr;
         }
     };
 
