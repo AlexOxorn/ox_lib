@@ -29,6 +29,49 @@ namespace ox {
 
     template<typename T>
     concept endianable = is_endianable_v<T>;
+
+    template<typename T>
+    class ptr32 {
+        u32 addr;
+    public:
+        ptr32(u32 pAddr) :addr{pAddr} {};
+        ptr32() = default;
+
+        T operator*() {
+            return *(T*)addr;
+        }
+
+        ptr32<T>& operator++() {
+            addr += sizeof(T);
+            return *this;
+        }
+
+        ptr32<T> operator+(int a) {
+            return ptr32<T>{addr + a};
+        }
+
+        ptr32<T> operator-(int a) {
+            return ptr32<T>{addr - a};
+        }
+
+        ptr32<T>& operator+=(int a) {
+            addr += a * sizeof(T);
+            return *this;
+        }
+
+        ptr32<T>& operator-=(int a) {
+            addr -= a * sizeof(T);
+            return *this;
+        }
+
+        T& operator[](int a) {
+            return *(T*)(this->addr + sizeof(T) * a);
+        }
+
+        operator T*() {
+            return (T*)addr;
+        }
+    };
 }
 
 
