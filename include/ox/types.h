@@ -30,35 +30,35 @@ namespace ox {
     template<typename T>
     concept endianable = is_endianable_v<T>;
 
-    template<typename T>
-    class ptr32 {
-        u32 addr;
+    template<typename T, std::integral base_type=u32>
+    class ptr {
+        base_type addr;
     public:
-        ptr32() = default;
+        ptr() = default;
 
         T operator*() {
             return *(T*)addr;
         }
 
-        ptr32<T>& operator++() {
+        ptr<T>& operator++() {
             addr += sizeof(T);
             return *this;
         }
 
-        ptr32<T> operator+(int a) {
-            return ptr32<T>{addr + a};
+        ptr<T> operator+(int a) {
+            return ptr<T>{addr + a};
         }
 
-        ptr32<T> operator-(int a) {
-            return ptr32<T>{addr - a};
+        ptr<T> operator-(int a) {
+            return ptr<T>{addr - a};
         }
 
-        ptr32<T>& operator+=(int a) {
+        ptr<T>& operator+=(int a) {
             addr += a * sizeof(T);
             return *this;
         }
 
-        ptr32<T>& operator-=(int a) {
+        ptr<T>& operator-=(int a) {
             addr -= a * sizeof(T);
             return *this;
         }
@@ -70,14 +70,18 @@ namespace ox {
         operator T*() {
             return (T*)addr;
         }
+
+        operator base_type() {
+            reutrn addr;
+        }
     };
 
     template <>
-    class ptr32<void> {
+    class ptr<void> {
         unsigned addr;
     public:
-        ptr32(unsigned pAddr) :addr{pAddr} {};
-        ptr32() = default;
+        ptr(unsigned pAddr) :addr{pAddr} {};
+        ptr() = default;
     };
 }
 
