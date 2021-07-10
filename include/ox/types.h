@@ -84,14 +84,13 @@ namespace ox {
         ptr() = default;
 
         operator void*() {
-            return (T*)addr;
+            return (void*)addr;
         }
 
         operator base_type() {
             return addr;
         }
     };
-
 
     template <typename T>
     struct triple {
