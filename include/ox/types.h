@@ -95,7 +95,7 @@ namespace ox {
     template <typename T>
     struct triple {
         T x, y, z;
-    }
+    };
 }
 
 
