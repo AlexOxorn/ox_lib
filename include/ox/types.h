@@ -40,25 +40,25 @@ namespace ox {
             return *(T*)addr;
         }
 
-        ptr<T>& operator++() {
+        ptr<T, base_type>& operator++() {
             addr += sizeof(T);
             return *this;
         }
 
-        ptr<T> operator+(int a) {
+        ptr<T, base_type> operator+(int a) {
             return ptr<T>{addr + a};
         }
 
-        ptr<T> operator-(int a) {
+        ptr<T, base_type> operator-(int a) {
             return ptr<T>{addr - a};
         }
 
-        ptr<T>& operator+=(int a) {
+        ptr<T, base_type>& operator+=(int a) {
             addr += a * sizeof(T);
             return *this;
         }
 
-        ptr<T>& operator-=(int a) {
+        ptr<T, base_type>& operator-=(int a) {
             addr -= a * sizeof(T);
             return *this;
         }
@@ -76,7 +76,7 @@ namespace ox {
         }
     };
 
-    template <std::integral base_type=u32>
+    template <std::integral base_type>
     class ptr<void, base_type> {
         base_type addr;
     public:
