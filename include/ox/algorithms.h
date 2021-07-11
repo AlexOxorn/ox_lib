@@ -67,7 +67,7 @@ namespace ox {
         return d_start;
     }
 
-    template<typename T, std::size_n N, std::size_n M>
+    template<typename T, size_t N, size_t M>
     constexpr std::array<T, N * M>
     flatten(const std::array<std::array<T, N>, M>& array_of_arrays) {
         std::array<T, N * M> to_return;
