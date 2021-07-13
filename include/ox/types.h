@@ -67,12 +67,18 @@ namespace ox {
             return *(T*)(this->addr + sizeof(T) * a);
         }
 
+        bool operator<=>(const ptr<T, base_type>& other) const = default;
+
         operator T*() {
             return (T*)addr;
         }
 
-        operator base_type() {
+        explicit operator base_type() {
             return addr;
+        }
+
+        operator bool() {
+            return addr != 0;
         }
     };
 
@@ -87,8 +93,14 @@ namespace ox {
             return (void*)addr;
         }
 
-        operator base_type() {
+        explicit operator base_type() {
             return addr;
+        }
+
+        bool operator<=>(const ptr<void, base_type>& other) const = default;
+
+        operator bool() {
+            return addr != 0;
         }
     };
 
