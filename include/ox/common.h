@@ -9,7 +9,7 @@ namespace ox {
     using iter_v_type = typename std::iterator_traits<iter>::value_type;
 
     template <typename T, size_t N>
-    constexpr size_t array_size(T (&arr)[N]) {
+    constexpr size_t array_size(T (&)[N]) {
       return N;
     }
 
