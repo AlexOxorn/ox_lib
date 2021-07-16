@@ -47,8 +47,12 @@ function(add_sources VAR)
   set(${VAR} ${sources} PARENT_SCOPE)
 endfunction()
 
-add_headers(OX_HEADERS algorithms.h bytes.h common.h formating.h terminal.h types.h)
+add_headers(OX_HEADERS algorithms.h bytes.h common.h formating.h terminal.h types.h file.h ptr.h triple.h)
 add_sources(OX_SOURCES terminal.cpp bytes.cpp)
+
+foreach (head ${OX_HEADERS})
+    message(${head})
+endforeach()
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)
