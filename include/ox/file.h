@@ -10,28 +10,53 @@
 
 namespace ox {
     class file {
-        FILE *cfile;
-        std::string_view mode;
+        FILE *cfile = nullptr;
+
+        void close_file() {
+            if (!cfile)
+                fclose(cfile);
+        }
+
+        void open_file() {
+            if (!cfile)
+                fclose(cfile);
+        }
     public:
         operator FILE*() const {
             return cfile;
         }
 
-        file(const char* filename, const char *mode) : mode{mode} {
+        file(const char* filename, const char *mode) {
             cfile = fopen(filename, mode);
             if (cfile == nullptr) throw errno;
         }
+        file(int fd, const char *mode) {
+            cfile = fdopen(fd, mode);
+            if (cfile == nullptr) throw errno;
+        }
+        file(FILE *fp) : cfile{fp} {}
 
-        file(const std::filesystem::path filepath, const char *mode) : mode{mode} {
+        file(const std::filesystem::path filepath, const char *mode) {
             cfile = fopen(filepath.c_str(), mode);
             if (cfile == nullptr) throw errno;
         }
 
-        file(file&& other) = default;
-        file& operator=(file&& other) = default;
+        file(const file& other) = delete;
+        file& operator=(const file& other) = delete;
+
+        file(file&& other) {
+            cfile = other.cfile;
+            other.cfile = nullptr;
+        };
+        file& operator=(file&& other) {
+            close_file();
+            cfile = other.cfile;
+            other.cfile = nullptr;
+            return *this;
+        };
 
         ~file() {
-            fclose(cfile);
+            close_file();
         }
 
         void clearerr() noexcept {
@@ -65,7 +90,6 @@ namespace ox {
         void reopen(const char *new_filename, const char *new_mode) {
             cfile = freopen(new_filename, new_mode, cfile);
             if (cfile == nullptr) throw errno;
-            mode = new_mode;
         }
 
         void seek(long offset, int whence = SEEK_SET) {
@@ -113,5 +137,6 @@ namespace ox {
     };
 }
 
+#undef OX_THROW_ON_FAILURE
 
 #endif
