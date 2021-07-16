@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <type_traits>
 #include <concepts>
+#include <typeinfo>
+#include <string>
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -30,89 +32,20 @@ namespace ox {
     template<typename T>
     concept endianable = is_endianable_v<T>;
 
-    template<typename T, std::integral base_type=u32>
-    class ptr {
-        base_type addr;
-    public:
-        ptr() = default;
-
-        T operator*() {
-            return *(T*)addr;
-        }
-
-        ptr<T, base_type>& operator++() {
-            addr += sizeof(T);
-            return *this;
-        }
-
-        ptr<T, base_type> operator+(int a) {
-            return ptr<T>{addr + a};
-        }
-
-        ptr<T, base_type> operator-(int a) {
-            return ptr<T>{addr - a};
-        }
-
-        ptr<T, base_type>& operator+=(int a) {
-            addr += a * sizeof(T);
-            return *this;
-        }
-
-        ptr<T, base_type>& operator-=(int a) {
-            addr -= a * sizeof(T);
-            return *this;
-        }
-
-        T& operator[](int a) {
-            return *(T*)(this->addr + sizeof(T) * a);
-        }
-
-        bool operator<=>(const ptr<T, base_type>& other) const = default;
-
-        operator T*() {
-            return (T*)addr;
-        }
-
-        explicit operator base_type() {
-            return addr;
-        }
-
-        operator bool() {
-            return addr != 0;
-        }
-    };
-
-    template <std::integral base_type>
-    class ptr<void, base_type> {
-        base_type addr;
-    public:
-        ptr(base_type pAddr) :addr{pAddr} {};
-        ptr() = default;
-
-        operator void*() {
-            return (void*)addr;
-        }
-
-        explicit operator base_type() {
-            return addr;
-        }
-
-        bool operator<=>(const ptr<void, base_type>& other) const = default;
-
-        operator bool() {
-            return addr != 0;
-        }
-    };
-
     template <typename T>
-    struct triple {
-        union {
-            struct {
-                T x, y, z;
-            };
-            T data[3];
-        };
-    };
+    std::string type_name() {
+        using TR = typename std::remove_reference<T>::type;
+        std::string r = typeid(TR).name();
+        if (std::is_const<TR>::value)
+            r += " const";
+        if (std::is_volatile<TR>::value)
+            r += " volatile";
+        if (std::is_lvalue_reference<T>::value)
+            r += "&";
+        else if (std::is_rvalue_reference<T>::value)
+            r += "&&";
+        return r;
+    }
 }
 
 
