@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <type_traits>
 #include <concepts>
+#include <ox/types.h>
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -24,6 +25,20 @@ namespace ox {
             };
             T data[3];
         };
+    };
+
+    template <endianable T>
+    struct triple<T> {
+        union {
+            struct {
+                T x, y, z;
+            };
+            T data[3];
+        };
+
+        void endian_swap() {
+            ox::swap(data, 3);
+        }
     };
 }
 

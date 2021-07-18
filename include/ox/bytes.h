@@ -21,9 +21,7 @@ namespace ox {
         u8 bytes[4];
     } o32_host_order = { .bytes = { 0, 1, 2, 3 } };
 
-    inline u32 O32_HOST_ORDER() {
-        return o32_host_order.value;
-    }
+    const inline u32 O32_HOST_ORDER = o32_host_order.value;
 
     template <std::integral T>
     T bswap(T number) {
@@ -68,17 +66,40 @@ namespace ox {
     inline u8 swap8(u8 data) {return data;}
     inline u32 swap24(const u8* data) {return (data[0] << 16) | (data[1] << 8) | data[2];}
 
-    template <std::integral T>
-    void swap(T* data) {
-        *data = bswap(*data);
-    };
-
     void swap(void* data, int size, int length = 1);
 
     template <std::integral T>
     inline T from_big_endian(T data){
         swap<T>(reinterpret_cast<u8*>(&data));
         return data;
+    }
+
+    template <std::integral T>
+    void swap(T* data, int length = 1) {
+        for(int i = 0; i < length; i++)
+            data[i] = bswap(data[i]);
+    };
+
+    template<scalar_endianable T> requires (!std::is_integral_v<T>)
+    void swap(T* data, int length = 1) {
+        switch(sizeof(T)) {
+        case sizeof(u16):
+            ox::swap(reinterpret_cast<u16*>(data), length);
+            break;
+        case sizeof(u32):
+            ox::swap(reinterpret_cast<u32*>(data), length);
+            break;
+        case sizeof(u64):
+            ox::swap(reinterpret_cast<u64*>(data), length);
+            break;
+        }
+    }
+
+    template<custom_endianable T>
+    void swap(T* data, int length = 1) {
+        for(int offset = 0; offset < length; offset++) {
+            data[offset].endian_swap();
+        }
     }
 }
 
