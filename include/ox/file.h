@@ -13,12 +13,7 @@ namespace ox {
         FILE *cfile = nullptr;
 
         void close_file() {
-            if (!cfile)
-                fclose(cfile);
-        }
-
-        void open_file() {
-            if (!cfile)
+            if (cfile)
                 fclose(cfile);
         }
     public:

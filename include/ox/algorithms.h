@@ -71,7 +71,7 @@ namespace ox {
     constexpr std::array<T, N * M>
     flatten(const std::array<std::array<T, N>, M>& array_of_arrays) {
         std::array<T, N * M> to_return;
-        flatten(array_of_arrays.being(), array_of_arrays.end(), to_return.being());
+        flatten(array_of_arrays.begin(), array_of_arrays.end(), to_return.begin());
         return to_return;
     }
 }
