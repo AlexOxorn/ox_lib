@@ -7,6 +7,8 @@
 #include <concepts>
 #include <ox/types.h>
 #include <limits.h>
+#include <type_traits>
+#include <bit>
 
 namespace ox {
     enum {
@@ -16,12 +18,23 @@ namespace ox {
         O32_HONEYWELL_ENDIAN = 0x02030001ul /* Honeywell 316 (aka ENDIAN_BIG_WORD) */
     };
 
-    static constexpr union {
-        u32 value;
-        u8 bytes[4];
-    } o32_host_order = { .bytes = { 0, 1, 2, 3 } };
+    template<size_t N> struct integer_of_size {};
+    template<> struct integer_of_size<1> { using type = i8; };
+    template<> struct integer_of_size<2> { using type = i16; };
+    template<> struct integer_of_size<4> { using type = i32; };
+    template<> struct integer_of_size<8> { using type = i64; };
+    template<size_t N> using integer_of_size_t = typename integer_of_size<N>::type;
 
-    const inline u32 O32_HOST_ORDER = o32_host_order.value;
+    template<size_t N> struct unsigned_of_size {};
+    template<> struct unsigned_of_size<1> { using type = u8; };
+    template<> struct unsigned_of_size<2> { using type = u16; };
+    template<> struct unsigned_of_size<4> { using type = u32; };
+    template<> struct unsigned_of_size<8> { using type = u64; };
+    template<size_t N> using unsigned_of_size_t = typename unsigned_of_size<N>::type;
+
+    static constexpr u8 o32_host_order[4] =  { 0, 1, 2, 3 };
+
+    constexpr u32 O32_HOST_ORDER = std::bit_cast<u32>(o32_host_order);
 
     template <std::integral T>
     T bswap(T number) {
@@ -29,15 +42,16 @@ namespace ox {
         if constexpr (size == 1) {
             return number;
         } else {
-            T result{};
+            using UT = std::make_unsigned_t<T>;
+            UT result{};
             for(int i = size; i > size/2; i--) {
-                T high_mask = T{0xff} << ((i - 1) * 8);
-                T low_mask = T{0xff} << ((size - i) * 8);
+                UT high_mask = UT{0xff} << ((i - 1) * 8);
+                UT low_mask = UT{0xff} << ((size - i) * 8);
                 int shift = (i - size/2) * 16 - 8;
                 result |= (number & high_mask) >> shift;
                 result |= (number & low_mask) << shift;
             }
-            return result;
+            return std::bit_cast<T>(result);
         }
     }
 
@@ -75,28 +89,18 @@ namespace ox {
     }
 
     template <std::integral T>
-    void swap(T* data, int length = 1) {
+    void bswap(T* data, int length = 1) {
         for(int i = 0; i < length; i++)
             data[i] = bswap(data[i]);
     };
 
     template<scalar_endianable T> requires (!std::is_integral_v<T>)
-    void swap(T* data, int length = 1) {
-        switch(sizeof(T)) {
-        case sizeof(u16):
-            ox::swap(reinterpret_cast<u16*>(data), length);
-            break;
-        case sizeof(u32):
-            ox::swap(reinterpret_cast<u32*>(data), length);
-            break;
-        case sizeof(u64):
-            ox::swap(reinterpret_cast<u64*>(data), length);
-            break;
-        }
+    void bswap(T* data, int length = 1) {
+        ox::bswap(reinterpret_cast<unsigned_of_size_t<sizeof(T)>*>(data), length);
     }
 
     template<custom_endianable T>
-    void swap(T* data, int length = 1) {
+    void bswap(T* data, int length = 1) {
         for(int offset = 0; offset < length; offset++) {
             data[offset].endian_swap();
         }

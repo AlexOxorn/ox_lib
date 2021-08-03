@@ -1,7 +1,7 @@
 #include <ox/bytes.h>
 
 namespace ox {
-    void swap(void* data, int size, int length) {
+    void bswap(void* data, int size, int length) {
         for(int offset = 0; offset < length; offset++) {
             switch(size) {
             case sizeof(u16):
