@@ -33,8 +33,8 @@ namespace ox {
         typedef char small;
         struct big { char x[2]; };
 
-        template <typename C> static small test( decltype(&C::endian_swap) ) ;
-        template <typename C> static big test(...);
+        template <typename C> static small test( decltype(&C::endian_swap) ) { return '\0'; } ;
+        template <typename C> static big test(...) { return "a"; };
 
     public:
         enum { value = sizeof(test<T>(0)) == sizeof(char) };

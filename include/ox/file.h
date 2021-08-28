@@ -29,9 +29,10 @@ namespace ox {
             cfile = fdopen(fd, mode);
             if (cfile == nullptr) throw errno;
         }
+
         file(FILE *fp) : cfile{fp} {}
 
-        file(const std::filesystem::path filepath, const char *mode) {
+        file(const std::filesystem::path& filepath, const char *mode) {
             cfile = fopen(filepath.c_str(), mode);
             if (cfile == nullptr) throw errno;
         }
@@ -58,11 +59,11 @@ namespace ox {
             ::clearerr(cfile);
         }
 
-        bool eof() const noexcept {
+        [[nodiscard]] bool eof() const noexcept {
             return feof(cfile);
         }
 
-        bool error() const noexcept {
+        [[nodiscard]] bool error() const noexcept {
             return ferror(cfile);
         }
 
@@ -71,7 +72,7 @@ namespace ox {
             OX_THROW_ON_FAILURE;
         }
 
-        fpos_t getpos() const {
+        [[nodiscard]] fpos_t getpos() const {
             fpos_t to_return{};
             int failure = fgetpos(cfile, &to_return);
             OX_THROW_ON_FAILURE;
@@ -97,7 +98,7 @@ namespace ox {
             OX_THROW_ON_FAILURE;
         }
 
-        long tell() const {
+        [[nodiscard]] long tell() const {
             long result = ftell(cfile);
             if (result < 0)
                 throw errno;

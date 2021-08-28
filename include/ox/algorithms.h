@@ -16,15 +16,14 @@ namespace ox {
         typename return_type = iter_v_type<iter>,
         typename unary_transform = std::identity
     >
-    requires true &&
-    requires(return_type out, string_type sep, iter_v_type<iter> in, unary_transform op) {
+    requires requires(return_type out, string_type sep, iter_v_type<iter> in, unary_transform op) {
         { out.append(op(in)) };
         { out.append(sep) };
     }
     constexpr return_type& join(
         iter begin,
         iter end,
-        string_type seperator,
+        string_type separator,
         return_type& result,
         unary_transform op = unary_transform{}
     ) {
@@ -33,7 +32,7 @@ namespace ox {
         result.append(op(*begin));
         ++begin;
         for(; begin != end; ++begin) {
-            result.append(seperator);
+            result.append(separator);
             result.append(op(*begin));
         }
         return result;

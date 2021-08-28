@@ -2,7 +2,7 @@
 #define _OXORN_TERMINAL_H
 
 #include <sys/ioctl.h>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <utility>
 

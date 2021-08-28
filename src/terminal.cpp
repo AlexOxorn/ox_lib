@@ -7,7 +7,7 @@ namespace ox {
             ioctl(STDIN_FILENO, TIOCGSIZE, &ts);
             return {ts.ts_cols, ts.ts_rows};
         #elif defined(TIOCGWINSZ)
-            struct winsize ts;
+            struct winsize ts{};
             ioctl(STDIN_FILENO, TIOCGWINSZ, &ts);
             return {ts.ws_col, ts.ws_row};
         #endif /* TIOCGSIZE */

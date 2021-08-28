@@ -1,12 +1,12 @@
 #ifndef _OXORN_BYTES_H
 #define _OXORN_BYTES_H
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 #include <array>
 #include <concepts>
 #include <ox/types.h>
-#include <limits.h>
+#include <climits>
 #include <type_traits>
 #include <bit>
 
@@ -77,16 +77,10 @@ namespace ox {
         return (x >> n) | (x << (64 - n));
     }
 
-    inline u8 swap8(u8 data) {return data;}
-    inline u32 swap24(const u8* data) {return (data[0] << 16) | (data[1] << 8) | data[2];}
+    inline u8 bswap8(u8 data) {return data;}
+    inline u32 bswap24(const u8* data) {return (data[0] << 16) | (data[1] << 8) | data[2];}
 
-    void swap(void* data, int size, int length = 1);
-
-    template <std::integral T>
-    inline T from_big_endian(T data){
-        swap<T>(reinterpret_cast<u8*>(&data));
-        return data;
-    }
+    void bswap(void* data, int size, int length = 1);
 
     template <std::integral T>
     void bswap(T* data, int length = 1) {

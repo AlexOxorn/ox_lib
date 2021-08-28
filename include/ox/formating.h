@@ -27,7 +27,7 @@ namespace ox {
 
         enum Scope : int {
             to_end = 0,
-            to_begining = 1,
+            to_beginning = 1,
             all = 2,
         };
 
@@ -98,7 +98,7 @@ namespace ox {
             return sequence;
         }
 
-        const char* c_str() const {
+        [[nodiscard]] const char* c_str() const {
             return sequence.c_str();
         }
     };

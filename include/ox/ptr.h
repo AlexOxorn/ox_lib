@@ -52,7 +52,7 @@ namespace ox {
             return addr;
         }
 
-        operator bool() {
+        explicit operator bool() {
             return addr != 0;
         }
     };
@@ -61,10 +61,10 @@ namespace ox {
     class ptr<void, base_type> {
         base_type addr;
     public:
-        ptr(base_type pAddr) :addr{pAddr} {};
+        explicit ptr(base_type pAddr) :addr{pAddr} {};
         ptr() = default;
 
-        operator void*() {
+        explicit operator void*() {
             return (void*)addr;
         }
 
@@ -74,7 +74,7 @@ namespace ox {
 
         bool operator<=>(const ptr<void, base_type>& other) const = default;
 
-        operator bool() {
+        explicit operator bool() {
             return addr != 0;
         }
     };
