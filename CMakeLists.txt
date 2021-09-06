@@ -57,7 +57,8 @@ message(STATUS "X11_LIBRARIES = ${X11_LIBRARIES}")
 message(${X11_LIBRARIES})
 
 
-add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h file.h ptr.h triple.h X11Test.h)
+add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h
+        file.h ptr.h triple.h X11Test.h colors.h)
 add_sources(OX_SOURCES terminal.cpp bytes.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})

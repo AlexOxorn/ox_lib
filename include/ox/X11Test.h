@@ -14,6 +14,7 @@
 #include <fstream>
 #include <filesystem>
 #include <ox/formatting.h>
+#include <ox/colors.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -22,57 +23,6 @@
 namespace ox{
     using position = std::pair<int, int>;
     using namespace std::chrono_literals;
-
-    union color {
-        struct {
-            int r, g, b;
-        } rgb;
-        struct {
-            double h, s, l;
-        } hsl;
-    };
-
-
-    inline unsigned long rgb255(color c) {
-        return c.rgb.b + (c.rgb.g << 8) + (c.rgb.r << 16);
-    }
-
-    inline color hsl_to_rgb(color hsl) {
-        if (hsl.hsl.s == 0) {
-            int rgb_l = static_cast<int>(hsl.hsl.l * 255);
-            return {{rgb_l, rgb_l, rgb_l}};
-        }
-
-        double tmp1 = hsl.hsl.l < 0.5 ? hsl.hsl.l * (1.0 + hsl.hsl.s) : hsl.hsl.l + hsl.hsl.s - hsl.hsl.l * hsl.hsl.s;
-        double tmp2 = 2 * hsl.hsl.l - tmp1;
-
-        double tmpColours[3];
-        for (int i = 0; i < 3; i++) {
-            tmpColours[i] = hsl.hsl.h - (i - 1) * 1.0/3;
-            while (tmpColours[i] < 0) tmpColours[i] += 1;
-            while (tmpColours[i] > 1) tmpColours[i] -= 1;
-        }
-
-        for (auto& color: tmpColours) {
-            if (color * 6 < 1) {
-                color = tmp2 + (tmp1 - tmp2) * 6 * color;
-            } else if (2 * color < 1) {
-                color = tmp1;
-            } else if (3 * color < 2) {
-                color = tmp2 + (tmp1 - tmp2) * (2.0 / 3 - color) * 6;
-            } else {
-                color = tmp2;
-            }
-        }
-
-        int colors255[3];
-        for (int i = 0; i < 3; i++) {
-            colors255[i] = static_cast<int>(255 * tmpColours[i]);
-        }
-
-        auto& [r, g, b] = colors255;
-        return {{r, g, b}};
-    }
 
     class EmptyX11StateClass {};
 
@@ -192,19 +142,6 @@ namespace ox{
             }
         }
     };
-
-    inline void printX11Colours(const std::filesystem::path& color_file = "/usr/share/X11/rgb.txt") {
-        std::ifstream color_stream{color_file};
-        std::string temp;
-        std::getline(color_stream, temp);
-        while(color_stream) {
-            int r, g, b;
-            std::string name;
-            color_stream >> r >> g >> b;
-            std::getline(color_stream, name);
-            std::cout << ox::format{ox::escape::direct_color, 2, r, g, b} << name << std::endl;
-        }
-    }
 
     struct TestStruct {
         unsigned long color{};
