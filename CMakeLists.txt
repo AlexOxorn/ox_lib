@@ -60,7 +60,7 @@ message(${X11_LIBRARIES})
 add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h file.h ptr.h triple.h X11Test.h)
 add_sources(OX_SOURCES terminal.cpp bytes.cpp)
 
-add_library(ox ${OX_SOURCES} ${OX_HEADERS} src/X11Test.cpp)
+add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)
 
 set_target_properties(ox PROPERTIES LINKER_LANGUAGE CXX)
