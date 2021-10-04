@@ -147,7 +147,9 @@ namespace ox{
         unsigned long color{};
     };
 
-    inline void foo() {
+    XTextItem string_to_X(const std::string& s);
+
+    inline void foo2() {
         using TestWindow = X11Window<TestStruct>;
         TestWindow x{{100, 100}, {500, 300}};
 

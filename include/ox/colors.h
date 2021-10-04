@@ -21,6 +21,9 @@ namespace ox {
             [[nodiscard]] unsigned long rgb255() const {
                 return b + (g << 8) + (r << 16);
             }
+            [[nodiscard]] unsigned long rgba255(int a = 255) const {
+                return a + (b << 8) + (g << 16) + (r << 24);
+            }
         } rgb;
         struct {
             double h, s, l;

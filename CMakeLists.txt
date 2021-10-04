@@ -54,17 +54,21 @@ message(STATUS "X11_FOUND = ${X11_FOUND}")
 message(STATUS "X11_INCLUDE_DIR = ${X11_INCLUDE_DIR}")
 message(STATUS "X11_LIBRARIES = ${X11_LIBRARIES}")
 
-message(${X11_LIBRARIES})
+find_package(SDL2 REQUIRED)
 
+message(STATUS "SDL2_FOUND = ${SDL2_FOUND}")
+message(STATUS "SDL2_INCLUDE_DIR = ${SDL2_INCLUDE_DIR}")
+message(STATUS "SDL2_LIBRARIES = ${SDL2_LIBRARIES}")
 
 add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h
-        file.h ptr.h triple.h X11Test.h colors.h)
+        file.h ptr.h triple.h X11Test.h canvas.h colors.h)
 add_sources(OX_SOURCES terminal.cpp bytes.cpp)
 
-add_library(ox ${OX_SOURCES} ${OX_HEADERS})
+add_library(ox ${OX_SOURCES} ${OX_HEADERS} src/X11Test.cpp)
 add_library(ox::ox ALIAS ox)
 
 set_target_properties(ox PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(ox PRIVATE ${X11_LIBRARIES})
+target_link_libraries(ox PRIVATE ${SDL2_LIBRARIES})
 target_link_libraries(ox PRIVATE Threads::Threads)
 target_include_directories("ox" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
