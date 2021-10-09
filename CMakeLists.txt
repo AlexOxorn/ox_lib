@@ -1,35 +1,6 @@
 cmake_minimum_required(VERSION "3.16.3")
 
-# if (NOT DEFINED OX_LIB_MASTER_PROJECT)
-#   set(OX_LIB_MASTER_PROJECT OFF)
-#   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-#     set(OX_LIB_MASTER_PROJECT ON)
-#     message(STATUS "CMake version: ${CMAKE_VERSION}")
-#   endif ()
-# endif ()
-#
-# set(CMAKE_CXX_STANDARD 20)
-# set(CMAKE_CXX_STANDARD_REQUIRED True)
-# set(DCMAKE_CXX_FLAGS "-Werror -Wall -Wextra")
-#
-# find_program(
-#     CLANG_TIDY_EXE
-#     NAMES "clang-tidy"
-# )
-#
-# if(NOT CLANG_TIDY_EXE)
-#     message(STATUS "clang-tidy not found.")
-# else()
-#     message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-#     set(
-#         CMAKE_CXX_CLANG_TIDY
-#         "${CLANG_TIDY_EXE}"
-#         -checks=cppcoreguidelines-*,readability-*,performance-*,clang-analyzer-*,bugprone-*,misc-*,modernize-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-c-copy-assignment-signature,-cppcoreguidelines-explicit-virtual-functions,-cppcoreguidelines-non-private-member-variables-in-classes;
-#         -header-filter=src/.*.hpp
-#         --warnings-as-errors=cppcoreguidelines-*,readability-*,performance-*,clang-analyzer-*,bugprone-*,misc-*,modernize-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-c-copy-assignment-signature,-cppcoreguidelines-explicit-virtual-functions,-cppcoreguidelines-non-private-member-variables-in-classes;
-#         -p .;
-#     )
-# endif()
+INCLUDE(FindPkgConfig)
 
 function(add_headers VAR)
   set(headers ${${VAR}})
@@ -55,14 +26,18 @@ message(STATUS "X11_INCLUDE_DIR = ${X11_INCLUDE_DIR}")
 message(STATUS "X11_LIBRARIES = ${X11_LIBRARIES}")
 
 find_package(SDL2 REQUIRED)
+PKG_SEARCH_MODULE(SDL2IMAGE REQUIRED SDL2_image)
+PKG_SEARCH_MODULE(SDL2TTF REQUIRED SDL2_ttf)
 
 message(STATUS "SDL2_FOUND = ${SDL2_FOUND}")
 message(STATUS "SDL2_INCLUDE_DIR = ${SDL2_INCLUDE_DIR}")
 message(STATUS "SDL2_LIBRARIES = ${SDL2_LIBRARIES}")
+message(STATUS "SDL2IMAGE_LIBRARIES = ${SDL2IMAGE_LIBRARIES}")
+message(STATUS "SDL2TTF_LIBRARIES = ${SDL2TTF_LIBRARIES}")
 
 add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h
         file.h ptr.h triple.h X11Test.h canvas.h colors.h)
-add_sources(OX_SOURCES terminal.cpp bytes.cpp)
+add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS} src/X11Test.cpp)
 add_library(ox::ox ALIAS ox)
@@ -70,5 +45,7 @@ add_library(ox::ox ALIAS ox)
 set_target_properties(ox PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(ox PRIVATE ${X11_LIBRARIES})
 target_link_libraries(ox PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(ox PRIVATE ${SDL2IMAGE_LIBRARIES})
+target_link_libraries(ox PRIVATE ${SDL2TTF_LIBRARIES})
 target_link_libraries(ox PRIVATE Threads::Threads)
 target_include_directories("ox" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

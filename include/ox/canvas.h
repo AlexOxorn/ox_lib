@@ -20,6 +20,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 #define WRAP_SDL_POINTER(ARG_TYPE, NAME) std::unique_ptr<ARG_TYPE, class ARG_TYPE##_destroyer>;\
 struct ARG_TYPE##_destroyer { auto operator()(ARG_TYPE * _p) { return NAME(_p);} };
@@ -32,85 +33,106 @@ namespace ox{
     using sdl_window = WRAP_SDL_POINTER(SDL_Window, SDL_DestroyWindow)
     using sdl_surface = WRAP_SDL_POINTER(SDL_Surface, SDL_FreeSurface);
     using sdl_renderer = WRAP_SDL_POINTER(SDL_Renderer, SDL_DestroyRenderer);
+    using sdl_font = WRAP_SDL_POINTER(TTF_Font, TTF_CloseFont)
+    using sdl_texture = WRAP_SDL_POINTER(SDL_Texture, SDL_DestroyTexture)
 
     class sdl_instance {
-        using callback_signature = bool(sdl_instance&);
-        using callback_type = std::function<callback_signature>;
-
-        using handler_signature = bool(sdl_instance&, const SDL_Event&);
-        using handler_type = std::function<handler_signature>;
-        using event_handler_array = std::array<handler_type, SDL_LASTEVENT>;
-        using event_handler_ptr = std::unique_ptr<event_handler_array>;
-
-        sdl_window _window;
-        sdl_surface _screen_surface;
-
-        std::unordered_map<std::string, SDL_Surface *> sub_surfaces;
-        std::chrono::milliseconds render_sleep = 16ms;
-
-        callback_type init_callback = [](sdl_instance&){return false;};
-        callback_type loop_callback = [](sdl_instance&){return false;};
-        event_handler_ptr event_callbacks = std::make_unique<event_handler_array>();
-        bool _successful_init;
-
-        void _default_quit_handler() {
-            event_callbacks->at(SDL_QUIT) = [](sdl_instance&, const SDL_Event&) { return true; };
-        }
-
-        void _redraw() {
-            SDL_UpdateWindowSurface(window());
-        }
     public:
-        explicit sdl_instance(const std::string& name, position _size,
-                              position _position = {SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED}) {
-            _successful_init = true;
-            _default_quit_handler();
+        class texture {
+            SDL_Renderer* _renderer;
+            
+            //The actual hardware texture
+            sdl_texture _texture;
 
-            if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
-                printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-                _successful_init = false;
-            } else {
-                _window = sdl_window{SDL_CreateWindow(
-                        name.c_str(),
-                        _position.first,
-                        _position.second,
-                        _size.first, _size.second, 
-                        SDL_WINDOW_SHOWN
-                        )};
-                if(!_window) {
-                    printf( "_window could not be created! SDL_Error: %s\n", SDL_GetError() );
-                    _successful_init = false;
-                } else {
-                    _screen_surface = sdl_surface {SDL_GetWindowSurface( window() )};
-                    // auto temp = SDL_CreateRenderer( window(), -1, SDL_RENDERER_ACCELERATED);
-                    // printf("%p, %s\n", temp, SDL_GetError());
-                }
+            //Image dimensions
+            int _width = 0;
+            int _height = 0;
+            texture(SDL_Renderer* _r) : _renderer{_r} {};
+            texture(SDL_Renderer* _r, const std::filesystem::path& path,
+                    SDL_bool key = SDL_FALSE, color key_color = named_colors::black) : _renderer{_r} {
+                load_from_file(path, key, key_color);
+            };
+            texture(SDL_Renderer* _r, TTF_Font* font, const std::string& texture_text, SDL_Color text_color = {0, 0, 0, 0}) : _renderer{_r} {
+                load_from_rendered_text(font, texture_text, text_color);
+            };
+            friend class sdl_instance;
+        public:
+            //Loads image at specified path
+            bool load_from_file(const std::filesystem::path& path, SDL_bool key = SDL_FALSE, color key_color = named_colors::black);
+            
+            //Creates image from font string
+            bool load_from_rendered_text(TTF_Font* font, const std::string& textureText, SDL_Color textColor );
+
+            //Set color modulation
+            void setColor( Uint8 red, Uint8 green, Uint8 blue );
+
+            //Set blending
+            void setBlendMode( SDL_BlendMode blending );
+
+            //Set alpha modulation
+            void setAlpha( Uint8 alpha );
+            
+            //Renders texture at given point
+            void render(
+                int x, int y,
+                SDL_Rect* clip = nullptr,
+                double angle = 0.0,
+                SDL_Point* center = nullptr,
+                SDL_RendererFlip flip = SDL_FLIP_NONE
+            ) const;
+
+            //Gets image dimensions
+            int getWidth() const;
+            int getHeight() const;
+
+            SDL_Texture* get() const {
+                return _texture.get();
             }
-        }
+
+            explicit operator bool() const {
+                return bool{_texture};
+            }
+        };
+    private:
+        sdl_window _window;
+        SDL_Surface* _screen_surface = nullptr;
+        sdl_renderer _screen_renderer;
+
+        std::unordered_map<std::string, sdl_surface> sub_surfaces;
+        std::unordered_map<std::string, texture> textures;
+        bool _successful_init = false;
+        bool _ttf_init = false;
+        bool _image_init = false;
+
+    public:
+        explicit sdl_instance(const std::string& name, bool renderer = false, position _size = {1920, 1080},
+                              position _position = {SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED});
         sdl_instance(const sdl_instance&) = delete;
         sdl_instance& operator=(const sdl_instance&) = delete;
         sdl_instance& operator=(sdl_instance&&) = delete;
         sdl_instance(sdl_instance && other) = delete;
 
-        bool load_media(const std::string& name, const std::filesystem::path& path) {
-            SDL_Surface* image = SDL_LoadBMP(path.c_str());
-            if (image == nullptr) {
-                printf( "Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-                return false;
-            }
-            auto result = sub_surfaces.insert({name, image});
-            return result.second;
+        void resurface() {
+            _screen_surface = SDL_GetWindowSurface( window() );
         }
 
-        void register_init_callback(const callback_type& init) {
-            init_callback = init;
+        void replace_renderer() {
+            _screen_renderer = sdl_renderer{SDL_CreateRenderer( window(), -1, SDL_RENDERER_ACCELERATED )};
         }
-        void register_loop_callback(const callback_type& loop) {
-            loop_callback = loop;
+
+        void redraw() {
+            if(_screen_surface) {
+                SDL_UpdateWindowSurface(window());
+            } else if (_screen_renderer) {
+                SDL_RenderPresent(screen_renderer());
+            }
         }
-        void register_loop_callback(SDL_EventType type, const handler_type& callback) {
-            event_callbacks->at(type) = callback;
-        }
+
+        bool load_media(const std::string& name, const std::filesystem::path& path);
+
+        bool load_texture(const std::string& name, const std::filesystem::path& path, SDL_bool key = SDL_FALSE, color key_color = named_colors::black);
+        
+        bool load_text(const std::string& name, const std::filesystem::path& ttf_path, int size, const std::string& s, SDL_Color color = {0, 0, 0, 0});
 
         bool successful_init() const {
             return _successful_init;
@@ -121,77 +143,38 @@ namespace ox{
         }
 
         SDL_Surface *screen_surface() const {
-            return _screen_surface.get();
+            return _screen_surface;
+        }
+
+        SDL_Renderer *screen_renderer() const {
+            return _screen_renderer.get();
         }
 
         SDL_Surface* get_surface(const std::string& name) {
-            return sub_surfaces.at(name);
+            return sub_surfaces.at(name).get();
         }
 
-        void operator()() {
-            SDL_Event e;
-            bool quit = false;
-
-            if(init_callback(*this))
-                _redraw();
-            while (!quit) {
-                bool main_loop_redraw = false;
-                bool event_redraw = false;
-                auto now = std::chrono::steady_clock::now();
-                auto end = now + render_sleep;
-
-                while(SDL_PollEvent( &e )) {
-                    if (auto handler = event_callbacks->at(e.type)) {
-                        event_redraw = true;
-                        quit = handler(*this, e) || quit;
-                    }
-                }
-                main_loop_redraw = loop_callback(*this);
-                
-                if(main_loop_redraw || event_redraw) {
-                    // printf("redraw\n");
-                    _redraw();
-                }
-                std::this_thread::sleep_until(end);
+        const texture* get_texture(const std::string& name) {
+            auto result = textures.find(name);
+            if (result == textures.end()) {
+                return nullptr;
             }
+            return &(result->second);
+        }
+
+        void set_renderer_color(color c, int alpha = 0xff) {
+            SDL_SetRenderDrawColor(screen_renderer(), c.rgb.r, c.rgb.g, c.rgb.b, alpha);
+        }
+
+        void clear_render() {
+            SDL_RenderClear( screen_renderer() );
         }
     };
 
-    inline void foo() {
-        sdl_instance is{"Test Image", {1920, 1080}};
-        // is.load_media("rank_image", "/home/alexoxorn/Pictures/temp/rank.bmp");
-        // is.register_init_callback([] (sdl_instance& a) mutable {
-        //     SDL_BlitSurface(a.get_surface("rank_image"), nullptr, a.screen_surface(), nullptr);
-        //     return true;
-        // });
-
-        double y = 50.0;
-
-        is.register_loop_callback([&y, hue = 0.0, width = 0](sdl_instance& win) mutable {
-            color rgb = hsl_to_rgb({.hsl = {hue / 360.0, 1.0, 0.5}});
-
-            hue += 1.0;
-            if(hue >= 360.0) {
-                hue = 0.0;
-            }
-
-            SDL_Rect r{50, 50, 50, 50};
-
-            auto& [red, green, blue] = rgb.rgb;
-            // Set render color to blue ( rect will be rendered in this color )
-            // printf("%d, %d, %d\n", red, green, blue);
-
-            // Render rect
-            SDL_FillRect( win.screen_surface(), &r, rgb.rgb.rgba255() );
-            // SDL_RenderFillRect( win.renderer(), &r );
-
-            // XSetForeground(win.display, win.gc, win.state.color);
-            // XFillRectangle(win.display, win.window, win.gc, 5, 5, static_cast<int>(win.attr.width * y / 100.0), 100);
-            return true;
-        });
-
-        is();
-    }
+    void foo();
+    void foo2();
+    unsigned sdl_color(SDL_Surface* s, color c);
+    void sdl_check_error();
 }
 
 #undef WRAP_SDL_POINTER
