@@ -5,6 +5,7 @@
 #include <functional>
 #include <string_view>
 #include <ox/canvas.h>
+#include <ox/algorithms.h>
 
 namespace ox{
     unsigned sdl_color(SDL_Surface* s, color c) {
@@ -61,8 +62,8 @@ namespace ox{
         if (!image) {
             return false;
         }
-        auto result = sub_surfaces.insert({name, std::move(image)});
-        return result.second;
+        insert_or_overwrite(sub_surfaces, name, std::move(image));
+        return true;
     }
 
     bool sdl_instance::load_texture(const std::string& name, const std::filesystem::path& path, SDL_bool key, color key_color) {
@@ -70,8 +71,8 @@ namespace ox{
         if (!new_texture) {
             return false;
         }
-        auto result = textures.insert({name, std::move(new_texture)});
-        return result.second;
+        insert_or_overwrite(textures, name, std::move(new_texture));
+        return true;
     }
 
     bool sdl_instance::load_text(const std::string& name, const std::filesystem::path& ttf_path, int size, const std::string& s, SDL_Color color) {
@@ -80,8 +81,8 @@ namespace ox{
         if (!new_texture) {
             return false;
         }
-        auto result = textures.insert({name, std::move(new_texture)});
-        return result.second;
+        insert_or_overwrite(textures, name, std::move(new_texture));
+        return true;
     }
 
     bool sdl_instance::texture::load_from_file(const std::filesystem::path& path, SDL_bool key, color key_color) {

@@ -7,6 +7,7 @@
 #include <ranges>
 #include <type_traits>
 #include <functional>
+#include <utility>
 #include <ox/common.h>
 
 namespace ox {
@@ -72,6 +73,16 @@ namespace ox {
         std::array<T, N * M> to_return;
         flatten(array_of_arrays.begin(), array_of_arrays.end(), to_return.begin());
         return to_return;
+    }
+
+    template<typename Map, typename Key, typename T>
+    void insert_or_overwrite(Map& m, const Key& k, T&& t) {
+        auto location = m.find(k);
+        if (location != m.end()) {
+            location->second = std::forward<T>(t);
+            return;
+        }
+        m.insert(std::pair{k, std::forward<T>(t)});
     }
 }
 

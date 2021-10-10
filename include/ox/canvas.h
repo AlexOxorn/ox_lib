@@ -22,7 +22,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
-#define WRAP_SDL_POINTER(ARG_TYPE, NAME) std::unique_ptr<ARG_TYPE, class ARG_TYPE##_destroyer>;\
+#define WRAP_SDL_POINTER(ARG_TYPE, NAME) std::unique_ptr<ARG_TYPE, struct ARG_TYPE##_destroyer>;\
 struct ARG_TYPE##_destroyer { auto operator()(ARG_TYPE * _p) { return NAME(_p);} };
 
 
@@ -47,6 +47,8 @@ namespace ox{
             //Image dimensions
             int _width = 0;
             int _height = 0;
+            friend class sdl_instance;
+        public:
             texture(SDL_Renderer* _r) : _renderer{_r} {};
             texture(SDL_Renderer* _r, const std::filesystem::path& path,
                     SDL_bool key = SDL_FALSE, color key_color = named_colors::black) : _renderer{_r} {
@@ -55,8 +57,9 @@ namespace ox{
             texture(SDL_Renderer* _r, TTF_Font* font, const std::string& texture_text, SDL_Color text_color = {0, 0, 0, 0}) : _renderer{_r} {
                 load_from_rendered_text(font, texture_text, text_color);
             };
-            friend class sdl_instance;
-        public:
+            texture(texture&& other) = default;
+            texture& operator=(texture&& other) = default;
+
             //Loads image at specified path
             bool load_from_file(const std::filesystem::path& path, SDL_bool key = SDL_FALSE, color key_color = named_colors::black);
             
