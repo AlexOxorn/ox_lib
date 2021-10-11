@@ -9,7 +9,7 @@
 
 namespace ox{
     unsigned sdl_color(SDL_Surface* s, color c) {
-        auto [red, green, blue] = c.rgb;
+        auto [red, green, blue] = c;
         return SDL_MapRGB(s->format, red, green, blue);
     };
 
@@ -163,7 +163,7 @@ namespace ox{
                 }
             }
 
-            color rgb = hsl_to_rgb({.hsl = {hue / 360.0, 1.0, 0.5}});
+            color rgb = hsl_to_rgb({hue / 360.0, 1.0, 0.5});
 
             hue += 1.0;
             if(hue >= 360.0) {
@@ -175,7 +175,7 @@ namespace ox{
 
             SDL_Rect r{50, 50, static_cast<int>(resized_width * y / 100.0), 50};
 
-            auto [red, green, blue] = rgb.rgb;
+            auto [red, green, blue] = rgb;
 
             SDL_FillRect(win.screen_surface(), &r, SDL_MapRGB(win.screen_surface()->format, red, green, blue) );
             win.redraw();
@@ -211,7 +211,7 @@ namespace ox{
                 }
             }
 
-            color rgb = hsl_to_rgb({.hsl = {hue / 360.0, 1.0, 0.5}});
+            color rgb = hsl_to_rgb({hue / 360.0, 1.0, 0.5});
 
             hue += 1.0;
             if(hue >= 360.0) {

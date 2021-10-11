@@ -166,7 +166,7 @@ namespace ox{
         }
 
         void set_renderer_color(color c, int alpha = 0xff) {
-            SDL_SetRenderDrawColor(screen_renderer(), c.rgb.r, c.rgb.g, c.rgb.b, alpha);
+            SDL_SetRenderDrawColor(screen_renderer(), c.r, c.g, c.b, alpha);
         }
 
         void clear_render() {

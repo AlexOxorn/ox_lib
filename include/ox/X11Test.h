@@ -172,7 +172,7 @@ namespace ox{
             return false;
         });
 
-//    x.rgb.register_event_callback([](X11Window& win) {
+//    x.register_event_callback([](X11Window& win) {
 //        if (win.event.type==ButtonPress) {
 //            /* tell where the mouse Button was Pressed */
 //            printf("You pressed a button at (%i,%i)\n",
