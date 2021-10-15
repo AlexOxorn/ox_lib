@@ -94,7 +94,7 @@ namespace ox{
         //Color key image
         SDL_SetColorKey( loaded_surface.get(), key, sdl_color(loaded_surface.get(), key_color) );
         _texture = sdl_texture{SDL_CreateTextureFromSurface(_renderer, loaded_surface.get() )};
-        if (_texture) {
+        if (!_texture) {
             printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
             return false;
         }
@@ -137,7 +137,7 @@ namespace ox{
         }
 
         //Render to screen
-        SDL_RenderCopyEx( _renderer, _texture.get(), clip, &render_quad, angle, center, flip );
+        SDL_RenderCopyEx( _renderer, _texture.get(), nullptr, &render_quad, angle, center, flip );
     }
 
     void foo() {

@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <concepts>
 #include <ox/types.h>
+#include <ox/bytes.h>
 
 namespace ox {
     template <typename T>
