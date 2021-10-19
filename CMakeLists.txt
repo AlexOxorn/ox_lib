@@ -32,7 +32,7 @@ message(STATUS "SDL2TTF_LIBRARIES = ${SDL2TTF_LIBRARIES}")
 
 add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h
         file.h ptr.h triple.h canvas.h colors.h)
-add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp)
+add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)

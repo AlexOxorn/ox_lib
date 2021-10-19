@@ -781,6 +781,9 @@ namespace ox {
         [[maybe_unused]] inline constexpr color pale_teal{171, 220, 215};
         [[maybe_unused]] inline constexpr color light_peach{236, 234, 220};
         [[maybe_unused]] inline constexpr color bright_red{227, 58, 55};
+
+        // Ubuntu
+        [[maybe_unused]] inline constexpr color terminal_background{56, 12, 42};
     }
 }
 

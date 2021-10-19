@@ -108,6 +108,8 @@ namespace ox{
         bool _image_init = false;
 
     public:
+        color background_color = ox::named_colors::terminal_background;
+
         explicit sdl_instance(const std::string& name, bool renderer = false, position _size = {1920, 1080},
                               position _position = {SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED});
         sdl_instance(const sdl_instance&) = delete;
@@ -169,8 +171,19 @@ namespace ox{
             SDL_SetRenderDrawColor(screen_renderer(), c.r, c.g, c.b, alpha);
         }
 
+        void reset_renderer_color() {
+            set_renderer_color(background_color);
+        }
+
         void clear_render() {
+            reset_renderer_color();
             SDL_RenderClear( screen_renderer() );
+        }
+
+        std::pair<int, int> get_window_size() const {
+            std::pair<int, int> to_return{};
+            SDL_GetWindowSize(window(), &to_return.first, &to_return.second);
+            return to_return;
         }
     };
 

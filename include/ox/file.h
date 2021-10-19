@@ -131,6 +131,9 @@ namespace ox {
             if (result == EOF) throw errno;
         }
     };
+
+    const std::filesystem::path& executable_path();
+    const std::filesystem::path& executable_folder();
 }
 
 #undef OX_THROW_ON_FAILURE
