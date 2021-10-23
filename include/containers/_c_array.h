@@ -14,7 +14,7 @@ constexpr size_t array_size(T (&)[N]) {
 }
 
 template <typename T, size_t N>
-std::array<T, N> c_to_std_array(T (&carr)[N]) {
+std::array<T, N> c_to_std_array(const T (&carr)[N]) {
     std::array<T, N> to_return{};
     std::copy(std::begin(carr), std::end(carr), to_return.begin());
     return to_return;
