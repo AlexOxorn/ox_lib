@@ -1,5 +1,5 @@
-#ifndef _OXORN_TERMINAL_H
-#define _OXORN_TERMINAL_H
+#ifndef OXLIB_TERMINAL_H
+#define OXLIB_TERMINAL_H
 
 #include <sys/ioctl.h>
 #include <cstdio>

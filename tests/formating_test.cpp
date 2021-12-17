@@ -1,4 +1,4 @@
-#include "formating.hpp"
+#include <ox/formatting.h>
 #include <cstdio>
 #include <iostream>
 #include <ios>

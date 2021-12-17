@@ -1,5 +1,5 @@
-#ifndef _OXORN_FORMATING_H
-#define _OXORN_FORMATING_H
+#ifndef OXLIB_FORMATING_H
+#define OXLIB_FORMATING_H
 
 #include <initializer_list>
 #include <string>

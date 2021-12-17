@@ -1,5 +1,5 @@
-#ifndef _OXORN_COLORS_H
-#define _OXORN_COLORS_H
+#ifndef OXLIB_COLORS_H
+#define OXLIB_COLORS_H
 
 #include <cstddef>
 #include <string>

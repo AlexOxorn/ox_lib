@@ -2,8 +2,8 @@
 // Created by alexoxorn on 2021-08-28.
 //
 
-#ifndef RANK_VIEWER_CANVAS_H
-#define RANK_VIEWER_CANVAS_H
+#ifndef OXLIB_CANVAS_H
+#define OXLIB_CANVAS_H
 
 #include <iostream>
 #include <functional>

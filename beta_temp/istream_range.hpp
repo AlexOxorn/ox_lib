@@ -1,5 +1,5 @@
-#ifndef _OXORN_ISTREAM_RANGE_H
-#define _OXORN_ISTREAM_RANGE_H
+#ifndef OXLIB_ISTREAM_RANGE_H
+#define OXLIB_ISTREAM_RANGE_H
 
 #include <iterator>
 #include <iostream>

@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION "3.16.3")
 
 INCLUDE(FindPkgConfig)
+project(oxlib)
+set(CMAKE_CXX_STANDARD 20)
+
+if (NOT DEFINED OXLIB_MASTER_PROJECT)
+  set(OXLIB_MASTER_PROJECT OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(OXLIB_MASTER_PROJECT ON)
+    message(STATUS "CMake version: ${CMAKE_VERSION}")
+  endif ()
+endif ()
+
+if(OXLIB_MASTER_PROJECT EQUAL "ON")
+  set(OXLIB_CANVAS TRUE)
+endif()
 
 function(add_headers VAR)
   set(headers ${${VAR}})
@@ -18,20 +32,40 @@ function(add_sources VAR)
   set(${VAR} ${sources} PARENT_SCOPE)
 endfunction()
 
-find_package(Threads REQUIRED)
+find_package(Threads)
 
-find_package(SDL2 REQUIRED)
-PKG_SEARCH_MODULE(SDL2IMAGE REQUIRED SDL2_image)
-PKG_SEARCH_MODULE(SDL2TTF REQUIRED SDL2_ttf)
+if (DEFINED OXLIB_CANVAS)
+  find_package(SDL2)
+  PKG_SEARCH_MODULE(SDL2IMAGE SDL2_image)
+  PKG_SEARCH_MODULE(SDL2TTF SDL2_ttf)
 
-message(STATUS "SDL2_FOUND = ${SDL2_FOUND}")
-message(STATUS "SDL2_INCLUDE_DIR = ${SDL2_INCLUDE_DIR}")
-message(STATUS "SDL2_LIBRARIES = ${SDL2_LIBRARIES}")
-message(STATUS "SDL2IMAGE_LIBRARIES = ${SDL2IMAGE_LIBRARIES}")
-message(STATUS "SDL2TTF_LIBRARIES = ${SDL2TTF_LIBRARIES}")
+  message(STATUS "SDL2_FOUND = ${SDL2_FOUND}")
+  message(STATUS "SDL2_INCLUDE_DIR = ${SDL2_INCLUDE_DIR}")
+  message(STATUS "SDL2_LIBRARIES = ${SDL2_LIBRARIES}")
+  message(STATUS "SDL2IMAGE_LIBRARIES = ${SDL2IMAGE_LIBRARIES}")
+  message(STATUS "SDL2TTF_LIBRARIES = ${SDL2TTF_LIBRARIES}")
 
-add_headers(OX_HEADERS algorithms.h bytes.h common.h formatting.h terminal.h types.h
-        file.h ptr.h triple.h canvas.h colors.h)
+  if(SDL2_FOUND)
+    add_headers(OX_HEADERS canvas.h)
+  endif()
+endif()
+
+
+
+add_headers(
+        OX_HEADERS
+        algorithms.h
+        bytes.h
+        common.h
+        formatting.h
+        terminal.h
+        types.h
+        io.h
+        triple.h
+        colors.h
+        array.h
+        std_abbreviation.h
+)
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})

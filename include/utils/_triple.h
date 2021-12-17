@@ -1,9 +1,10 @@
-#ifndef _OXORN_TRIPLE_H
-#define _OXORN_TRIPLE_H
+//
+// Created by alexoxorn on 2021-12-16.
+//
 
-#include <cstdint>
-#include <type_traits>
-#include <concepts>
+#ifndef OXLIB__TRIPLE_H
+#define OXLIB__TRIPLE_H
+
 #include <ox/types.h>
 #include <ox/bytes.h>
 
@@ -33,5 +34,4 @@ namespace ox {
     };
 }
 
-
-#endif
+#endif //OXLIB__TRIPLE_H

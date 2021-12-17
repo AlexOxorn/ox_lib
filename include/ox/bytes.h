@@ -1,5 +1,5 @@
-#ifndef _OXORN_BYTES_H
-#define _OXORN_BYTES_H
+#ifndef OXLIB_BYTES_H
+#define OXLIB_BYTES_H
 
 #include <cstddef>
 #include <string>
@@ -11,6 +11,7 @@
 #include <bit>
 
 namespace ox {
+    using namespace ox::int_alias;
     enum {
         O32_LITTLE_ENDIAN = 0x03020100ul,
         O32_BIG_ENDIAN = 0x00010203ul,

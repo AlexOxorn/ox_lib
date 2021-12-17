@@ -1,4 +1,4 @@
-#include "algorithms.hpp"
+#include <ox/algorithms.h>
 #include <cstdio>
 #include <vector>
 #include <list>

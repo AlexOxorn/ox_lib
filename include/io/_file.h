@@ -1,14 +1,22 @@
-#ifndef _OXORN_FILE_H
-#define _OXORN_FILE_H
+#ifndef OXLIB_IO_FILE_H
+#define OXLIB_IO_FILE_H
 
 #include <cstdio>
 #include <unistd.h>
 #include <string_view>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 
 #define OX_THROW_ON_FAILURE if(failure) throw errno;
 
 namespace ox {
+    struct file_closer {
+        auto operator()(FILE* f) {
+            return fclose(f);
+        }
+    };
+    using cfile = std::unique_ptr<FILE, file_closer>;
     class file {
         FILE *cfile = nullptr;
 
@@ -131,11 +139,8 @@ namespace ox {
             if (result == EOF) throw errno;
         }
     };
-
-    const std::filesystem::path& executable_path();
-    const std::filesystem::path& executable_folder();
 }
 
 #undef OX_THROW_ON_FAILURE
 
-#endif
+#endif //OXLIB_IO_FILE_H
