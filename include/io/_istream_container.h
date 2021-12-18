@@ -9,16 +9,24 @@
 #include <iterator>
 
 namespace ox {
+    class line : public std::string {
+        using std::string::string;
+        friend std::istream & operator>>(std::istream& in, line& l) {
+            return std::getline(in, l);
+        }
+    };
+
     template <typename T, typename InputStream>
     class istream_container : public InputStream {
     public:
+        using value_type = T;
         using InputStream::InputStream;
         std::istream_iterator<T> begin() { return std::istream_iterator<T>(*this); }
         std::istream_iterator<T> end() { return {}; }
     };
 
 #define stream_container_definer(type, namespc) \
-    template <typename T> using type##_continer = istream_container<T, namespc::type>
+    template <typename T> using type##_container = istream_container<T, namespc::type>
 
     stream_container_definer(ifstream, std);
     stream_container_definer(istringstream, std);

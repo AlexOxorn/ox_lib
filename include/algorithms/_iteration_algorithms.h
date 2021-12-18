@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <functional>
 #include <utility>
+#include <queue>
 #include <ox/std_abbreviation.h>
 
 namespace ox {
@@ -60,6 +61,33 @@ namespace ox {
             return;
         }
         m.insert(std::pair{k, std::forward<T>(t)});
+    }
+
+    template<std::random_access_iterator InputIt, typename OutputIt>
+    OutputIt offset_difference(InputIt first, InputIt last, OutputIt d_first, int offset = 1)
+    {
+        if (last - first < offset) return d_first;
+
+        for(first += offset; first != last; ++first, ++d_first)
+            *d_first = *first - first[-offset];
+        return d_first;
+    }
+
+    template<std::input_iterator InputIt, typename OutputIt>
+    OutputIt offset_difference(InputIt first, InputIt last, OutputIt d_first, int offset = 1)
+    {
+        std::queue<typename InputIt::value_type> old_data;
+        for(int i : std::views::iota(0, offset)) {
+            if (first == last)
+                return d_first;
+            old_data.push(*first++);
+        }
+        while(first != last) {
+            *d_first++ = *first - old_data.front();
+            old_data.pop();
+            old_data.push(*first++);
+        }
+        return d_first;
     }
 }
 

@@ -56,14 +56,16 @@ add_headers(
         OX_HEADERS
         algorithms.h
         bytes.h
-        common.h
         formatting.h
         terminal.h
         types.h
         io.h
-        triple.h
         colors.h
         array.h
+        math.h
+        grid.h
+        ranges.h
+        graph.h
         std_abbreviation.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp)
