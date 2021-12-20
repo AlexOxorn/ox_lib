@@ -5,6 +5,9 @@
 #ifndef OX_LIB__SIMPLE_CONSTEXPR_MATH_H
 #define OX_LIB__SIMPLE_CONSTEXPR_MATH_H
 
+#include <numeric>
+#include <cassert>
+
 namespace ox {
     constexpr int power_of_2(unsigned x) {
         if (x == 0) return 1;
@@ -16,6 +19,7 @@ namespace ox {
     }
 
     constexpr int triangle_sum(int x) {
+        assert(x >= 0);
         auto y = stdv::iota(1, x+1);
         return std::accumulate(y.begin(), y.end(), 0);
     }
