@@ -20,7 +20,7 @@ namespace ox {
         { d(iter, iter) } -> std::integral;
     }
     std::vector<Node>
-    dikstra(Node start, Node end, GetNeighbours g, Distance d = {}, Hash h = {}) {
+    dikstra(Node start, Node end, GetNeighbours get_neighbours_function, Distance distance_function = {}, Hash hashing_function = {}) {
         std::vector<Node> open_set{start};
         std::unordered_set<Node, Hash> closed_set;
         std::unordered_map<Node, Node, Hash> came_from;
@@ -46,9 +46,9 @@ namespace ox {
             }
 
             g_score.try_emplace(current, std::numeric_limits<long>::max());
-            for (Node neighbour : g(current)) {
+            for (Node neighbour : get_neighbours_function(current)) {
                 g_score.try_emplace(neighbour, std::numeric_limits<long>::max());
-                int tentative_score = g_score[current] + d(neighbour, current);
+                int tentative_score = g_score[current] + distance_function(neighbour, current);
                 if (tentative_score < g_score[neighbour]) {
                     came_from.insert_or_assign(neighbour, current);
                     g_score.insert_or_assign(neighbour, tentative_score);
