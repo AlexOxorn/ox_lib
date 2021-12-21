@@ -36,7 +36,6 @@ namespace ox {
             closed_set.insert(current);
             if (current == end) {
                 std::vector<Node> to_return {end};
-                Node curr = end;
                 auto came_from_iter = came_from.begin();
                 while ((came_from_iter = came_from.find(to_return.back())) != came_from.end()) {
                     to_return.push_back(came_from_iter->second);
