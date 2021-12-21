@@ -10,7 +10,7 @@
 #include <span>
 #include <cassert>
 #include <algorithm>
-#include <ox/ranges.h>
+#include "ox/ranges.h"
 
 namespace ox {
     template <typename T, typename Container = std::vector<T>>
