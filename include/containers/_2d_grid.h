@@ -10,6 +10,7 @@
 #include <span>
 #include <cassert>
 #include <algorithm>
+#include <ranges>
 #include "ox/ranges.h"
 
 namespace ox {
@@ -31,8 +32,10 @@ namespace ox {
         explicit grid(int _width, I... args) : data(args...), width(_width) {};
 
         template <std::ranges::range R>
-        requires std::constructible_from<Container, typename std::remove_reference_t<R>::iterator, typename R::iterator>
-        explicit grid(int _width, R&& r) : data(r.begin, r.end()), width(_width) {};
+        requires std::constructible_from<Container, decltype(std::ranges::begin(std::declval<R>())), decltype(std::ranges::end(std::declval<R>()))>
+        explicit grid(int _width, R&& r) : data(std::ranges::begin(r), std::ranges::end(r)), width(_width) {};
+
+        explicit grid(int _width, const std::initializer_list<T>& r) : data(r), width(_width) {};
 
         template <std::ranges::range R>
         explicit grid(int _width, R&& r) : width(_width) {
@@ -97,11 +100,15 @@ namespace ox {
             return data.size() / width;
         }
 
+        [[nodiscard]] std::size_t get_width() const {
+            return width;
+        }
+
         auto get_size() {
             return data.size();
         }
 
-        std::pair<int, int> get_dimensions() {
+        std::pair<std::size_t, std::size_t> get_dimensions() {
             return {width, data.size() / width};
         }
 
@@ -247,19 +254,17 @@ namespace ox {
         using pointer = value_type*;
         using referece = value_type&;
     private:
-        typename Container::const_iterator curr;
         int width;
         value_type current_data;
-    public:
-
-        row_iterator(int _width, typename Container::const_iterator _curr) :
-            width(_width),
-            curr(_curr),
-            current_data{curr, curr + width} {}
 
         void update_data() {
-            current_data = {curr, curr + width};
+            current_data.second = current_data.first + width;
         }
+
+    public:
+        row_iterator(int _width, typename Container::const_iterator _curr) :
+            width(_width),
+            current_data{_curr, _curr + width} {}
 
         value_type operator*() {
             return current_data;
@@ -268,7 +273,7 @@ namespace ox {
             return &current_data;
         }
         row_iterator& operator++() {
-            curr += width;
+            current_data.first += width;
             update_data();
             return *this;
         }
@@ -279,17 +284,17 @@ namespace ox {
         }
         row_iterator operator+(int i) {
             row_iterator cpy(*this);
-            cpy.curr += width * i;
+            cpy.current_data.first += width * i;
             cpy.update_data();
             return cpy;
         }
         row_iterator& operator+=(int i) {
-            curr += width * i;
+            current_data.first += width * i;
             update_data();
             return *this;
         }
         row_iterator& operator--() {
-            curr -= width;
+            current_data.first -= width;
             update_data();
             return *this;
         }
@@ -300,15 +305,15 @@ namespace ox {
         }
         row_iterator operator-(int i) {
             row_iterator cpy(*this);
-            cpy.curr -= width * i;
+            cpy.current_data.first -= width * i;
             cpy.update_data();
             return cpy;
         }
         int operator-(const row_iterator& other) {
-            return (curr - other.curr) / width;
+            return (current_data.first - other.current_data.first) / width;
         }
         row_iterator& operator-=(int i) {
-            curr -= width * i;
+            current_data.first -= width * i;
             update_data();
             return *this;
         }
@@ -321,13 +326,13 @@ namespace ox {
             return *this;
         }
         auto operator<=>(const row_iterator& other) const {
-            return curr <=> other.curr;
+            return current_data.first <=> other.current_data.first;
         };
         bool operator==(const row_iterator& other) const {
-            return curr == other.curr;
+            return current_data.first == other.current_data.first;
         }
         bool operator!=(const row_iterator& other) const {
-            return curr != other.curr;
+            return current_data.first != other.current_data.first;
         }
     };
 }

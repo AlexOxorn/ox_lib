@@ -13,14 +13,14 @@
 #include <ox/algorithms.h>
 
 namespace ox {
-    template<typename Node, typename GetNeighbours, typename Distance = std::minus<>, typename Hash = std::hash<Node>>
+    template<typename Node, typename GetNeighbours, typename Distance, typename Hash = std::hash<Node>>
     requires requires (GetNeighbours g, Distance d, Node iter) {
         { g(iter) } -> std::ranges::range;
         { *(g(iter).begin()) } -> std::convertible_to<Node>;
         { d(iter, iter) } -> std::integral;
     }
     std::vector<Node>
-    dikstra(Node start, Node end, GetNeighbours get_neighbours_function, Distance distance_function = {}, Hash hashing_function = {}) {
+    dikstra(Node start, Node end, GetNeighbours get_neighbours_function, Distance distance_function, Hash) {
         std::vector<Node> open_set{start};
         std::unordered_set<Node, Hash> closed_set;
         std::unordered_map<Node, Node, Hash> came_from;
@@ -66,6 +66,17 @@ namespace ox {
         }
 
         return {};
+    }
+
+    template<typename Node, typename GetNeighbours, typename Distance = std::minus<>, typename Hash = std::hash<Node>>
+    requires requires (GetNeighbours g, Distance d, Node iter) {
+        { g(iter) } -> std::ranges::range;
+        { *(g(iter).begin()) } -> std::convertible_to<Node>;
+        { d(iter, iter) } -> std::integral;
+    }
+    std::vector<Node>
+    dikstra(Node&& start, Node end, GetNeighbours&& get_neighbours_function, Distance distance_function = {}) {
+        return distance_function(std::forward<>(start), std::forward<>(end), std::forward<>(get_neighbours_function), std::forward<>(distance_function), Hash());
     }
 }
 
