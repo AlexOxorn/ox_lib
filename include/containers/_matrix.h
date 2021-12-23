@@ -36,7 +36,7 @@ namespace ox {
         using grid<T, Container>::grid;
 
     public:
-        matrix& operator+=(const matrix& other) {
+        constexpr matrix& operator+=(const matrix& other) {
             if (this->get_dimensions() != other.get_dimensions()) {
                 throw invalid_matrix_dimensions(*this, other, '+');
             }
@@ -45,13 +45,13 @@ namespace ox {
             }
         }
 
-        matrix operator+(const matrix& other) {
+        constexpr matrix operator+(const matrix& other) const {
             matrix sum = *this;
             sum += other;
             return sum;
         }
 
-        matrix operator*(const matrix& other) {
+        constexpr matrix operator*(const matrix& other) const {
             if (this->get_dimensions() != std::make_pair(other.get_height(), other.get_width())) {
                 throw invalid_matrix_dimensions(*this, other, '+');
             }
@@ -69,13 +69,13 @@ namespace ox {
         }
 
         template <typename Scalar> requires requires (T t, Scalar s) { { t * s } -> std::convertible_to<T>; }
-        matrix& operator*=(const Scalar& i) {
+        constexpr matrix& operator*=(const Scalar& i) {
             std::transform(this->data.begin(), this->data.end(), this->data.begin(), [&i](T a) { return a * i; });
             return *this;
         }
 
         template <typename Scalar, typename ...TemplateArgs> requires requires (T t, Scalar s) { { t * s } -> std::convertible_to<T>; }
-        friend matrix<TemplateArgs...> operator*(const Scalar& s, const matrix<TemplateArgs...>& m) {
+        constexpr friend matrix<TemplateArgs...> operator*(const Scalar& s, const matrix<TemplateArgs...>& m) {
             auto cpy = m;
             cpy *= s;
             return cpy;

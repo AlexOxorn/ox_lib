@@ -14,11 +14,12 @@
 #include "ox/ranges.h"
 
 namespace ox {
-    template <typename T, typename Container = std::vector<T>>
+    template<typename T, typename Container = std::vector<T>>
     class grid {
     protected:
         Container data;
         int width;
+
     public:
         class row_iterator;
 
@@ -28,98 +29,124 @@ namespace ox {
         using const_raw_iterator = typename container::const_iterator;
         using iterator = row_iterator;
 
-        template <typename ...I>
-        explicit grid(int _width, I... args) : data(args...), width(_width) {};
+        template<typename... I>
+        requires std::constructible_from<Container, I...>
+        constexpr explicit grid(int _width, I... args)
+            : data(args...),
+              width(_width){};
 
-        template <std::ranges::range R>
+        template<typename... I>
+        constexpr explicit grid(int _width, I... args)
+            : data({args...}),
+              width(_width){};
+
+        template<std::ranges::range R>
         requires std::constructible_from<Container, decltype(std::ranges::begin(std::declval<R>())), decltype(std::ranges::end(std::declval<R>()))>
-        explicit grid(int _width, R&& r) : data(std::ranges::begin(r), std::ranges::end(r)), width(_width) {};
+        constexpr explicit grid(int _width, R&& r)
+            : data(std::ranges::begin(r), std::ranges::end(r)),
+              width(_width){};
 
-        explicit grid(int _width, const std::initializer_list<T>& r) : data(r), width(_width) {};
+        constexpr explicit grid(int _width, const std::initializer_list<T>& r) requires std::constructible_from<Container, std::initializer_list<T>> : data(r)
+            , width(_width){};
 
-        template <std::ranges::range R>
-        explicit grid(int _width, R&& r) : width(_width) {
-            std::copy(r.begin, r.end, data.begin());
+        constexpr explicit grid(int _width, const std::initializer_list<T>& r) : grid(_width, std::views::all(r)) {};
+
+        template<std::ranges::range R>
+        constexpr explicit grid(int _width, R&& r)
+            : width(_width) {
+            std::copy(std::ranges::begin(r), std::ranges::end(r), data.begin());
         };
 
-        template <std::ranges::range R, std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj>
-        requires std::ranges::range<typename std::remove_reference_t<R>::value_type>
-                 && requires(
-                         typename std::remove_reference_t<R>::value_type row,
-                         typename std::remove_reference_t<R>::value_type::value_type elem,
-                         Container c, Proj p
-                         ) {
-                     { c.push_back(p(elem)) };
-                     { row.size() };
-                 }
-        explicit grid(R&& r, Proj p) {
-            for(const auto& row : r) {
+        template<std::ranges::range R, std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj>
+        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> && requires(
+               typename std::remove_reference_t<R>::value_type row,
+               typename std::remove_reference_t<R>::value_type::value_type elem,
+               Container c, Proj p) {
+            {c.push_back(p(elem))};
+            {row.size()};
+        }
+        constexpr explicit grid(R&& r, Proj p) {
+            for (const auto& row : r) {
                 width = row.size();
                 std::transform(row.begin(), row.end(), std::back_inserter(data), p);
             }
         };
 
-        template <std::ranges::range R>
-        requires std::ranges::range<typename R::value_type>
-                 && requires(
-                         typename std::remove_reference_t<R>::value_type row,
-                         typename std::remove_reference_t<R>::value_type::value_type elem,
-                         Container c
-                         ) {
-                     { c.push_back(elem) };
-                     { row.size() };
-                 }
-        explicit grid(R&& r) : grid(std::forward(r), std::identity()) {};
+        template<std::ranges::range R>
+        requires std::ranges::range<typename R::value_type> && requires(
+               typename std::remove_reference_t<R>::value_type row,
+               typename std::remove_reference_t<R>::value_type::value_type elem,
+               Container c) {
+            {c.push_back(elem)};
+            {row.size()};
+        }
+        constexpr explicit grid(R&& r)
+            : grid(std::forward(r), std::identity()){};
 
-        template <
-                std::ranges::range R,
-                std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj
-                >
-        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> &&
-                std::is_aggregate_v<Container>
-        explicit grid(R&& r, Proj p) {
-            for(auto& row : r) {
+        template<
+               std::ranges::range R,
+               std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj>
+        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> && std::is_aggregate_v<Container>
+        constexpr explicit grid(R&& r, Proj p) {
+            for (auto& row : r) {
                 width = row.size();
                 std::transform(row.begin(), row.end(), data.begin(), p);
             }
         };
 
-        template <std::ranges::range R>
-        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> &&
-                std::is_aggregate_v<Container>
-        explicit grid(R&& r) : grid(std::forward(r), std::identity()) {};
+        template<std::ranges::range R>
+        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> && std::is_aggregate_v<Container>
+        constexpr explicit grid(R&& r)
+            : grid(std::forward(r), std::identity()){};
 
-        grid() : data(), width(1) {};
+        constexpr grid()
+            : data(),
+              width(1){};
 
-        void set_width(int new_width) {
+        constexpr void set_width(int new_width) {
             assert(data.size() % new_width == 0);
             width = new_width;
         }
 
-        [[nodiscard]] std::size_t get_height() const {
+        [[nodiscard]] constexpr std::size_t get_height() const {
             return data.size() / width;
         }
 
-        [[nodiscard]] std::size_t get_width() const {
+        [[nodiscard]] constexpr std::size_t get_width() const {
             return width;
         }
 
-        auto get_size() {
+        constexpr auto get_size() const {
             return data.size();
         }
 
-        std::pair<std::size_t, std::size_t> get_dimensions() {
+        constexpr std::pair<std::size_t, std::size_t> get_dimensions() const {
             return {width, data.size() / width};
         }
 
-        const T& get(int i, int j) const {
+        constexpr const T& get(int i, int j) const {
             return data.at(j * width + i);
         }
-        T& get(int i, int j) {
+        constexpr T& get(int i, int j) {
             return data.at(j * width + i);
         }
 
-        template <std::invocable<T&> I, std::invocable<> O>
+        constexpr auto operator<=>(const grid& other)  const  requires std::three_way_comparable<Container> {
+            return data <=> other.data;
+        }
+        constexpr auto operator==(const grid& other)  const  requires std::equality_comparable<Container> {
+            return data == other.data;
+        }
+
+        constexpr auto operator<=>(const grid& other) const requires (!std::three_way_comparable<Container> && std::three_way_comparable<T>) {
+            return std::lexicographical_compare_three_way(data.begin(), data.end(), other.begin(), other.end());
+        }
+        constexpr auto operator==(const grid& other) const requires (!std::equality_comparable<Container> && std::equality_comparable<T>) {
+            auto [it1, it2] = std::mismatch(data.begin(), data.end(), other.begin(), other.end());
+            return it1 == data.end() && it2 == data.end();
+        }
+
+        template<std::invocable<T&> I, std::invocable<> O>
         void leveled_foreach(I inner, O outer) {
             for (auto row : *this) {
                 for (const T& item : std::ranges::subrange(row.first, row.second)) {
@@ -129,7 +156,7 @@ namespace ox {
             }
         }
 
-        template <std::invocable<raw_iterator &> I, std::invocable<> O>
+        template<std::invocable<raw_iterator&> I, std::invocable<> O>
         void leveled_iterators(I inner, O outer) {
             for (auto row : *this) {
                 for (auto [start, end] = row; start != end; ++start) {
@@ -139,7 +166,7 @@ namespace ox {
             }
         }
 
-        const Container& get_raw() const {
+        constexpr const Container& get_raw() const {
             return data;
         }
 
@@ -151,7 +178,7 @@ namespace ox {
         }
 
         [[nodiscard]] std::pair<int, int> coord_from_index(int index) const {
-            return {index % width, index/width};
+            return {index % width, index / width};
         }
 
         [[nodiscard]] std::pair<int, int> coord_from_index(const_raw_iterator index) const {
@@ -203,7 +230,7 @@ namespace ox {
 
         auto neighbour_range(const_raw_iterator current) {
             std::array neighbours{up(current), up(left(current)), left(current), down(left(current)),
-                                  down(current), down(right(current)), right(current), up(right(current))};
+                   down(current), down(right(current)), right(current), up(right(current))};
             return neighbours;
         }
         auto cardinal_neighbour_range(const_raw_iterator current) {
@@ -213,39 +240,37 @@ namespace ox {
 
         auto neighbour_range(raw_iterator current) {
             std::array neighbours{
-                up(std::optional(current)),
-                up(left(std::optional(current))),
-                left(std::optional(current)),
-                down(left(std::optional(current))),
-                down(std::optional(current)),
-                down(right(std::optional(current))),
-                right(std::optional(current)),
-                up(right(std::optional(current)))
-            };
+                   up(std::optional(current)),
+                   up(left(std::optional(current))),
+                   left(std::optional(current)),
+                   down(left(std::optional(current))),
+                   down(std::optional(current)),
+                   down(right(std::optional(current))),
+                   right(std::optional(current)),
+                   up(right(std::optional(current)))};
             return neighbours;
         }
         auto cardinal_neighbour_range(raw_iterator current) {
             std::array neighbours{
-                up(std::optional(current)),
-                left(std::optional(current)),
-                down(std::optional(current)),
-                right(std::optional(current))
-            };
+                   up(std::optional(current)),
+                   left(std::optional(current)),
+                   down(std::optional(current)),
+                   right(std::optional(current))};
             return neighbours;
         }
 
         static auto valid_index() {
-            return std::views::filter([](std::optional<raw_iterator> x) { return x.has_value(); } )
-                   | std::views::transform([] (std::optional<raw_iterator> x) { return *x; });
+            return std::views::filter([](std::optional<raw_iterator> x) { return x.has_value(); })
+                   | std::views::transform([](std::optional<raw_iterator> x) { return *x; });
         }
 
         static auto const_valid_index() {
-            return std::views::filter([](std::optional<const_raw_iterator> x) { return x.has_value(); } )
-                   | std::views::transform([] (std::optional<const_raw_iterator> x) { return *x; });
+            return std::views::filter([](std::optional<const_raw_iterator> x) { return x.has_value(); })
+                   | std::views::transform([](std::optional<const_raw_iterator> x) { return *x; });
         }
     };
 
-    template <typename T, typename Container>
+    template<typename T, typename Container>
     class grid<T, Container>::row_iterator {
     public:
         using iterator_category = std::random_access_iterator_tag;
@@ -253,6 +278,7 @@ namespace ox {
         using difference_type = int;
         using pointer = value_type*;
         using referece = value_type&;
+
     private:
         int width;
         value_type current_data;
@@ -262,9 +288,9 @@ namespace ox {
         }
 
     public:
-        row_iterator(int _width, typename Container::const_iterator _curr) :
-            width(_width),
-            current_data{_curr, _curr + width} {}
+        row_iterator(int _width, typename Container::const_iterator _curr)
+            : width(_width),
+              current_data{_curr, _curr + width} {}
 
         value_type operator*() {
             return current_data;
@@ -320,7 +346,7 @@ namespace ox {
         row_iterator operator[](int i) {
             return *this + i;
         }
-        template <std::ranges::range R>
+        template<std::ranges::range R>
         row_iterator& operator=(const R& r) {
             std::copy(r, *this);
             return *this;
@@ -335,6 +361,6 @@ namespace ox {
             return current_data.first != other.current_data.first;
         }
     };
-}
+} // namespace ox
 
-#endif //OX_LIB__2D_GRID_H
+#endif // OX_LIB__2D_GRID_H
