@@ -9,6 +9,9 @@ namespace ox {
         if (exec_path.empty()) {
             char result[ PATH_MAX ];
             ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+            if (count == 0) {
+                return exec_path;
+            }
             exec_path.assign(result);
         }     
         return exec_path;

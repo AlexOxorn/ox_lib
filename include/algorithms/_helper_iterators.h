@@ -13,7 +13,7 @@ namespace ox {
         int& count;
         std::function<bool(T)> predicate;
     public:
-        predicateCounter(std::function<bool(T)> pred, int& counter) : predicate(std::move(pred)), count(counter) {}
+        predicateCounter(std::function<bool(T)> pred, int& counter) : count(counter), predicate(std::move(pred)) {}
 
         predicateCounter& operator=(T t) {
             count += predicate(t);
