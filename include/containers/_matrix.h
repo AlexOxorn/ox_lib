@@ -22,7 +22,7 @@ namespace ox {
         char message[120]{};
 
         invalid_matrix_dimensions(const auto& a, const auto& b, char op) {
-            snprintf(message, 100, "Invalid dimensions: %zu x %zu and %zu and %zu for operator %c",
+            snprintf(message, 100, "Invalid dimensions: %zu x %zu and %zu x %zu for operator %c",
                    a.get_width(), a.get_height(), b.get_width(), b.get_height(), op);
         }
 
@@ -41,8 +41,9 @@ namespace ox {
                 throw invalid_matrix_dimensions(*this, other, '+');
             }
             for (auto sum_iter = this->data.begin(), other_iter = other.data.begin(); sum_iter != this->data.end(); sum_iter++, other_iter++) {
-                *(sum_iter) += other_iter;
+                *(sum_iter) += *other_iter;
             }
+            return *this;
         }
 
         constexpr matrix operator+(const matrix& other) const {
@@ -50,10 +51,18 @@ namespace ox {
             sum += other;
             return sum;
         }
+        constexpr matrix& operator-=(const matrix& other) {
+            return *this += (-1 * other);
+        }
+        constexpr matrix operator-(const matrix& other) const {
+            matrix sum = *this;
+            sum -= other;
+            return sum;
+        }
 
         constexpr matrix operator*(const matrix& other) const {
-            if (this->get_dimensions() != std::make_pair(other.get_height(), other.get_width())) {
-                throw invalid_matrix_dimensions(*this, other, '+');
+            if (this->get_width() != other.get_height()) {
+                throw invalid_matrix_dimensions(*this, other, '*');
             }
             int new_width = other.get_width();
             auto new_input = std::views::iota(std::size_t(0), other.get_width() * this->get_height())
@@ -75,15 +84,28 @@ namespace ox {
         }
 
         template <typename Scalar, typename ...TemplateArgs> requires requires (T t, Scalar s) { { t * s } -> std::convertible_to<T>; }
-        constexpr friend matrix<TemplateArgs...> operator*(const Scalar& s, const matrix<TemplateArgs...>& m) {
+        constexpr inline friend matrix<TemplateArgs...> operator*(const Scalar& s, const matrix<TemplateArgs...>& m) {
             auto cpy = m;
             cpy *= s;
             return cpy;
         }
 
+        constexpr matrix transpose() const {
+            auto new_input = std::views::iota(std::size_t(0), this->get_size())
+                   | std::views::transform([this](std::size_t index) -> int {
+                         return this->get(index / this->get_height(), index % this->get_height());
+                     });
+            return matrix(this->get_height(), new_input);
+        }
+
         void print_matrix() requires std::integral<T> {
-            T largest = stdr::max(this->data);
-            int width = numberOfDigits(largest);
+            auto x = this->data | std::views::transform([](auto x) {
+                return numberOfDigits(std::abs(x)) + (x < 0);
+            });
+            print_matrix(std::ranges::max(x));
+        }
+
+        void print_matrix(int width) requires std::integral<T> {
             this->leveled_foreach(
                    [width](T i) { std::cout << std::setw(width+1) << i; },
                    []() { std::cout << '\n'; }

@@ -131,6 +131,13 @@ namespace ox {
             return data.at(j * width + i);
         }
 
+        constexpr T& operator[](int i) {
+            return data[i];
+        }
+        constexpr const T& operator[](int i) const {
+            return data[i];
+        }
+
         constexpr auto operator<=>(const grid& other)  const  requires std::three_way_comparable<Container> {
             return data <=> other.data;
         }
