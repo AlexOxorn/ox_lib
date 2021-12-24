@@ -20,6 +20,12 @@ namespace ox {
         Container data;
         int width;
 
+        void constexpr check_bound(int i, int j) const {
+            if (i < 0 || i >= width)
+                throw std::out_of_range("Width index out of range");
+            if (j < 0 || std::size_t(j) >= get_height())
+                throw std::out_of_range("Height index out of range");
+        }
     public:
         class row_iterator;
 
@@ -124,17 +130,19 @@ namespace ox {
             return {width, data.size() / width};
         }
 
-        constexpr const T& get(int i, int j) const {
+        constexpr typename Container::const_reference get(int i, int j) const {
+            check_bound(i, j);
             return data.at(j * width + i);
         }
-        constexpr T& get(int i, int j) {
+        constexpr typename Container::reference get(int i, int j) {
+            check_bound(i, j);
             return data.at(j * width + i);
         }
 
-        constexpr T& operator[](int i) {
+        constexpr typename Container::const_reference operator[](int i) {
             return data[i];
         }
-        constexpr const T& operator[](int i) const {
+        constexpr typename Container::reference operator[](int i) const {
             return data[i];
         }
 
@@ -154,7 +162,7 @@ namespace ox {
         }
 
         template<std::invocable<T&> I, std::invocable<> O>
-        void leveled_foreach(I inner, O outer) {
+        void leveled_foreach(I inner, O outer) const {
             for (auto row : *this) {
                 for (const T& item : std::ranges::subrange(row.first, row.second)) {
                     inner(item);
@@ -164,7 +172,7 @@ namespace ox {
         }
 
         template<std::invocable<raw_iterator&> I, std::invocable<> O>
-        void leveled_iterators(I inner, O outer) {
+        void leveled_iterators(I inner, O outer) const {
             for (auto row : *this) {
                 for (auto [start, end] = row; start != end; ++start) {
                     inner(start);
