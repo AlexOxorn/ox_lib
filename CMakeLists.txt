@@ -70,7 +70,7 @@ add_headers(
         tree.h
         matrix.h
 )
-add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp)
+add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)
