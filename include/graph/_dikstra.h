@@ -21,7 +21,7 @@ namespace ox {
         { g(iter).begin()->second } -> std::totally_ordered;
         { h(iter, iter) } -> std::integral;
     }
-    auto dikstra(Node start, Node end, GetNeighbours get_neighbours_function, Heuristic heuristic_function = {}, Hash = Hash(), DebugFunc d = DebugFunc()) ->
+    auto dikstra(Node start, Node end, GetNeighbours get_neighbours_function, Heuristic heuristic_function = {}, Hash = Hash(), DebugFunc callback = DebugFunc()) ->
            std::pair<std::vector<std::pair<Node, decltype(get_neighbours_function(start).begin()->second)>>, decltype(get_neighbours_function(start).begin()->second)> {
         using cost_type = typename std::remove_reference<decltype(get_neighbours_function(start).begin()->second)>::type;
 
@@ -40,6 +40,7 @@ namespace ox {
 
         while (!open_set.empty()) {
             auto [current, current_cost] = ox::pop_heap_value(open_set, f_score_comp);
+            callback(current);
             if (current == end) {
                 std::vector<std::pair<Node, cost_type>> to_return{std::make_pair(end, g_score.at(current))};
                 auto came_from_iter = came_from.begin();
