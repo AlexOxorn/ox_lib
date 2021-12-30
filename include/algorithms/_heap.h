@@ -19,7 +19,7 @@ namespace ox {
 
     template <std::ranges::random_access_range Container, typename Comp = std::ranges::less>
     requires requires (Container c) { {c.pop_back()}; }
-    auto pop_heap_value(Container& c, Comp comp = {}) {
+    decltype(auto) pop_heap_value(Container& c, Comp comp = {}) {
         auto temp = c.front();
         std::ranges::pop_heap(c, comp);
         c.pop_back();
