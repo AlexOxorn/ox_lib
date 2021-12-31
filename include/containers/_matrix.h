@@ -26,6 +26,11 @@ namespace ox {
                    a.get_width(), a.get_height(), b.get_width(), b.get_height(), op);
         }
 
+        invalid_matrix_dimensions(const auto& a, const auto& b, const auto& dest, char op) {
+            snprintf(message, 100, "Invalid dimensions: %zu x %zu and %zu x %zu for operator %c to %zu x %zu",
+                   a.get_width(), a.get_height(), b.get_width(), b.get_height(), op, dest.get_width(), dest.get_height());
+        }
+
         [[nodiscard]] const char * what () const noexcept override {
             return message;
         }
@@ -35,25 +40,39 @@ namespace ox {
     class matrix : public grid<T, Container> {
         using grid<T, Container>::grid;
 
+        static auto get_multiplication_stream(const matrix& lhs, const matrix& rhs) {
+            return std::views::iota(std::size_t(0), rhs.get_width() * lhs.get_height())
+                   | std::views::transform([&](std::size_t index) -> int {
+                         std::pair coord = std::make_pair(index % rhs.get_width(), index / rhs.get_width());
+                         int sum = 0;
+                         for(int i : stdv::iota(std::size_t(0), lhs.get_width())) {
+                             sum += lhs.get(i, coord.second) * rhs.get(coord.first, i);
+                         }
+                         return sum;
+                     });
+        }
+
     public:
         constexpr matrix& operator+=(const matrix& other) {
             if (this->get_dimensions() != other.get_dimensions()) {
                 throw invalid_matrix_dimensions(*this, other, '+');
             }
-            for (auto sum_iter = this->data.begin(), other_iter = other.data.begin(); sum_iter != this->data.end(); sum_iter++, other_iter++) {
-                *(sum_iter) += *other_iter;
-            }
+            std::transform(this->data.begin(), this->data.end(), other.data.begin(), this->data.begin(), [](const auto& a, const auto& b) { return a + b; } );
             return *this;
         }
-
         constexpr matrix operator+(const matrix& other) const {
             matrix sum = *this;
             sum += other;
             return sum;
         }
         constexpr matrix& operator-=(const matrix& other) {
-            return *this += (-1 * other);
+            if (this->get_dimensions() != other.get_dimensions()) {
+                throw invalid_matrix_dimensions(*this, other, '-');
+            }
+            std::transform(this->data.begin(), this->data.end(), other.data.begin(), this->data.begin(), [](const auto& a, const auto& b) { return a - b; } );
+            return *this;
         }
+
         constexpr matrix operator-(const matrix& other) const {
             matrix sum = *this;
             sum -= other;
@@ -65,15 +84,7 @@ namespace ox {
                 throw invalid_matrix_dimensions(*this, other, '*');
             }
             int new_width = other.get_width();
-            auto new_input = std::views::iota(std::size_t(0), other.get_width() * this->get_height())
-                   | std::views::transform([this, new_width, &other](std::size_t index) -> int {
-                         std::pair coord = std::make_pair(index % new_width, index / new_width);
-                         int sum = 0;
-                         for(int i : stdv::iota(std::size_t(0), this->get_width())) {
-                             sum += this->get(i, coord.second) * other.get(coord.first, i);
-                         }
-                         return sum;
-                     });
+            auto new_input = get_multiplication_stream(*this, other);
             return matrix(new_width, new_input);
         }
 
@@ -88,6 +99,14 @@ namespace ox {
             auto cpy = m;
             cpy *= s;
             return cpy;
+        }
+
+        constexpr static void in_place_multiplication(matrix& dest, const matrix& lhs, const matrix& rhs) {
+            if (lhs.get_width() != rhs.get_height() && dest.get_width() == rhs.get_width() && dest.get_height() == lhs.get_height()) {
+                throw invalid_matrix_dimensions(lhs, rhs, dest, '*');
+            }
+            auto new_input = get_multiplication_stream(lhs, rhs);
+            std::copy(new_input.begin(), new_input.end(), dest.data.begin());
         }
 
         constexpr matrix transpose() const {

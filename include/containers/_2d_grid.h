@@ -26,6 +26,14 @@ namespace ox {
             if (j < 0 || std::size_t(j) >= get_height())
                 throw std::out_of_range("Height index out of range");
         }
+
+        [[nodiscard]] bool constexpr inbounds(int i, int j) const {
+            if (i < 0 || i >= width)
+                return false;
+            if (j < 0 || std::size_t(j) >= get_height())
+                return false;
+            return true;
+        }
     public:
         class row_iterator;
 
@@ -126,7 +134,7 @@ namespace ox {
             return data.size();
         }
 
-        constexpr std::pair<std::size_t, std::size_t> get_dimensions() const {
+        [[nodiscard]] constexpr std::pair<std::size_t, std::size_t> get_dimensions() const {
             return {width, data.size() / width};
         }
 
@@ -137,6 +145,17 @@ namespace ox {
         constexpr typename Container::reference get(int i, int j) {
             check_bound(i, j);
             return data.at(j * width + i);
+        }
+
+        constexpr typename std::optional<typename Container::const_reference> get_opt(int i, int j) const {
+            if (!inbounds(i, j))
+                return std::nullopt;
+            return data[j * width + i];
+        }
+        constexpr typename std::optional<typename Container::reference> get_opt(int i, int j) {
+            if (!inbounds(i, j))
+                return std::nullopt;
+            return data[j * width + i];
         }
 
         constexpr typename Container::const_reference operator[](int i) {
