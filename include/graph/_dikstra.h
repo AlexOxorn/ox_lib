@@ -29,12 +29,9 @@ namespace ox {
         std::vector<NodeCost> open_set{std::make_pair(start, heuristic_function(start, end))};
         std::unordered_map<Node, Node, Hash> came_from;
         std::unordered_map<Node, cost_type, Hash> g_score;
-        std::unordered_map<Node, cost_type, Hash> f_score;
-        std::unordered_map<Node, size_t, Hash> heap_index;
         g_score[start] = 0;
-        f_score[start] = heuristic_function(start, end);
 
-        auto f_score_comp = [&f_score] (const NodeCost& a, const NodeCost& b) {
+        auto f_score_comp = [] (const NodeCost& a, const NodeCost& b) {
             return a.second > b.second;
         };
 
@@ -58,7 +55,6 @@ namespace ox {
                     came_from.insert_or_assign(neighbour, current);
                     g_score.insert_or_assign(neighbour, tentative_score);
                     int f_cost = tentative_score + heuristic_function(current, end);
-                    f_score.insert_or_assign(neighbour, tentative_score + heuristic_function(current, end));
                     ox::push_heap_value(open_set, std::make_pair(neighbour, f_cost), f_score_comp);
                 }
             }
