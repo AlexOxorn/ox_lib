@@ -49,12 +49,12 @@ namespace ox {
             }
 
             for (auto [neighbour, cost] : get_neighbours_function(current)) {
-                int tentative_score = g_score.at(current) + cost;
+                cost_type tentative_score = g_score.at(current) + cost;
                 bool already_checked = g_score.contains(neighbour);
                 if (!already_checked || tentative_score < g_score[neighbour]) {
                     came_from.insert_or_assign(neighbour, current);
                     g_score.insert_or_assign(neighbour, tentative_score);
-                    int f_cost = tentative_score + heuristic_function(current, end);
+                    cost_type f_cost = tentative_score + heuristic_function(current, end);
                     ox::push_heap_value(open_set, std::make_pair(neighbour, f_cost), f_score_comp);
                 }
             }
