@@ -35,13 +35,15 @@ namespace ox {
             return true;
         }
     public:
+        template <typename BaseIterator>
         class row_iterator;
 
         using container = Container;
         using value_type = T;
         using raw_iterator = typename container::iterator;
         using const_raw_iterator = typename container::const_iterator;
-        using iterator = row_iterator;
+        using iterator = row_iterator<raw_iterator>;
+        using const_iterator = row_iterator<const_raw_iterator>;
 
         template<typename... I>
         requires std::constructible_from<Container, I...>
@@ -204,11 +206,18 @@ namespace ox {
             return data;
         }
 
-        row_iterator begin() const {
-            return row_iterator(width, data.begin());
+        const_iterator begin() const {
+            return const_iterator(width, data.begin());
         }
-        row_iterator end() const {
-            return row_iterator(width, data.end());
+        const_iterator end() const {
+            return const_iterator(width, data.end());
+        }
+
+        iterator begin() {
+            return iterator(width, data.begin());
+        }
+        iterator end() {
+            return iterator(width, data.end());
         }
 
         [[nodiscard]] std::pair<int, int> coord_from_index(int index) const {
@@ -305,10 +314,11 @@ namespace ox {
     };
 
     template<typename T, typename Container>
+    template<typename BaseIterator>
     class grid<T, Container>::row_iterator {
     public:
         using iterator_category = std::random_access_iterator_tag;
-        using value_type = std::pair<typename Container::const_iterator, typename Container::const_iterator>;
+        using value_type = std::pair<BaseIterator, BaseIterator>;
         using difference_type = int;
         using pointer = value_type*;
         using referece = value_type&;
@@ -322,7 +332,7 @@ namespace ox {
         }
 
     public:
-        row_iterator(int _width, typename Container::const_iterator _curr)
+        row_iterator(int _width, BaseIterator _curr)
             : width(_width),
               current_data{_curr, _curr + width} {}
 
