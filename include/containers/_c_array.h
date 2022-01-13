@@ -8,16 +8,18 @@
 #include <iterator>
 #include <array>
 
-template <typename T, size_t N>
-constexpr size_t array_size(T (&)[N]) {
-    return N;
-}
+namespace ox {
+    template <typename T, size_t N>
+    constexpr size_t array_size(T (&)[N]) {
+        return N;
+    }
 
-template <typename T, size_t N>
-std::array<T, N> c_to_std_array(const T (&carr)[N]) {
-    std::array<T, N> to_return{};
-    std::copy(std::begin(carr), std::end(carr), to_return.begin());
-    return to_return;
+    template <typename T, size_t N>
+    std::array<T, N> c_to_std_array(const T (&carr)[N]) {
+        std::array<T, N> to_return{};
+        std::copy(std::begin(carr), std::end(carr), to_return.begin());
+        return to_return;
+    }
 }
 
 #endif //OXLIB__C_ARRAY_H
