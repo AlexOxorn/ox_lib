@@ -77,7 +77,7 @@ namespace ox {
     OutputIt offset_difference(InputIt first, InputIt last, OutputIt d_first, int offset = 1)
     {
         std::queue<typename InputIt::value_type> old_data;
-        for(int i : std::views::iota(0, offset)) {
+        for([[maybe_unused]] int i : std::views::iota(0, offset)) {
             if (first == last)
                 return d_first;
             old_data.push(*first++);
