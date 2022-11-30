@@ -10,6 +10,7 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include <queue>
 #include <ox/algorithms.h>
 #include <ox/utils.h>
 
@@ -24,19 +25,20 @@ namespace ox {
     auto dikstra(Node start, Node end, GetNeighbours get_neighbours_function, Heuristic heuristic_function = {}, Hash = Hash(), DebugFunc callback = DebugFunc()) ->
            std::pair<std::vector<std::pair<Node, decltype(get_neighbours_function(start).begin()->second)>>, decltype(get_neighbours_function(start).begin()->second)> {
         using cost_type = typename std::remove_reference<decltype(get_neighbours_function(start).begin()->second)>::type;
-
         using NodeCost = std::pair<Node, cost_type>;
-        std::vector<NodeCost> open_set{std::make_pair(start, heuristic_function(start, end))};
-        std::unordered_map<Node, Node, Hash> came_from;
-        std::unordered_map<Node, cost_type, Hash> g_score;
-        g_score[start] = 0;
 
         auto f_score_comp = [] (const NodeCost& a, const NodeCost& b) {
             return a.second > b.second;
         };
 
+        std::priority_queue open_set(f_score_comp, std::vector{std::make_pair(start, heuristic_function(start, end))});
+        std::unordered_map<Node, Node, Hash> came_from;
+        std::unordered_map<Node, cost_type, Hash> g_score;
+        g_score[start] = 0;
+
         while (!open_set.empty()) {
-            auto [current, current_cost] = ox::pop_heap_value(open_set, f_score_comp);
+            auto [current, current_cost] = open_set.top();
+            open_set.pop();
             callback(current);
             if (current == end) {
                 std::vector<std::pair<Node, cost_type>> to_return{std::make_pair(end, g_score.at(current))};
@@ -55,7 +57,7 @@ namespace ox {
                     came_from.insert_or_assign(neighbour, current);
                     g_score.insert_or_assign(neighbour, tentative_score);
                     cost_type f_cost = tentative_score + heuristic_function(current, end);
-                    ox::push_heap_value(open_set, std::make_pair(neighbour, f_cost), f_score_comp);
+                    open_set.push(std::make_pair(neighbour, f_cost));
                 }
             }
         }

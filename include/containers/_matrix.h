@@ -46,7 +46,7 @@ namespace ox {
                          std::pair coord = std::make_pair(index % rhs.get_width(), index / rhs.get_width());
                          int sum = 0;
                          for(int i : stdv::iota(std::size_t(0), lhs.get_width())) {
-                             sum += lhs.get(i, coord.second) * rhs.get(coord.first, i);
+                             sum += lhs.at(i, coord.second) * rhs.at(coord.first, i);
                          }
                          return sum;
                      });

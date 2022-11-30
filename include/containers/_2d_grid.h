@@ -140,21 +140,21 @@ namespace ox {
             return {width, data.size() / width};
         }
 
-        constexpr typename Container::const_reference get(int i, int j) const {
+        constexpr typename Container::const_reference at(int i, int j) const {
             check_bound(i, j);
             return data.at(j * width + i);
         }
-        constexpr typename Container::reference get(int i, int j) {
+        constexpr typename Container::reference at(int i, int j) {
             check_bound(i, j);
             return data.at(j * width + i);
         }
 
-        constexpr typename std::optional<typename Container::const_reference> get_opt(int i, int j) const {
+        constexpr typename std::optional<typename Container::value_type> get(int i, int j) const {
             if (!inbounds(i, j))
                 return std::nullopt;
             return data[j * width + i];
         }
-        constexpr typename std::optional<typename Container::reference> get_opt(int i, int j) {
+        constexpr typename std::optional<typename Container::value_type> get(int i, int j) {
             if (!inbounds(i, j))
                 return std::nullopt;
             return data[j * width + i];
@@ -170,14 +170,30 @@ namespace ox {
         constexpr auto operator<=>(const grid& other)  const  requires std::three_way_comparable<Container> {
             return data <=> other.data;
         }
-        constexpr auto operator==(const grid& other)  const  requires std::equality_comparable<Container> {
+        constexpr bool operator==(const grid& other)  const  requires std::equality_comparable<Container> {
             return data == other.data;
         }
 
+        #ifndef _LIBCPP_VERSION
         constexpr auto operator<=>(const grid& other) const requires (!std::three_way_comparable<Container> && std::three_way_comparable<T>) {
-            return std::lexicographical_compare_three_way(data.begin(), data.end(), other.begin(), other.end());
+            return std::lexicographical_compare_three_way(data.begin(), data.end(), other.data.begin(), other.data.end());
         }
-        constexpr auto operator==(const grid& other) const requires (!std::equality_comparable<Container> && std::equality_comparable<T>) {
+        #else
+        constexpr auto operator<(const grid& other) const requires (std::three_way_comparable<T>) {
+            return std::lexicographical_compare(data.begin(), data.end(), other.data.begin(), other.data.end());
+        }
+        constexpr auto operator<=(const grid& other) const requires (std::three_way_comparable<T>) {
+            return *this < other || *this == other;
+        }
+        constexpr auto operator>=(const grid& other) const requires (std::three_way_comparable<T>) {
+            return !(*this < other);
+        }
+        constexpr auto operator>(const grid& other) const requires (std::three_way_comparable<T>) {
+            return *this != other && *this >= other;
+        }
+        #endif
+        constexpr bool operator==(const grid& other) const requires (!std::equality_comparable<Container> &&
+                std::equality_comparable<T>) {
             auto [it1, it2] = std::mismatch(data.begin(), data.end(), other.begin(), other.end());
             return it1 == data.end() && it2 == data.end();
         }

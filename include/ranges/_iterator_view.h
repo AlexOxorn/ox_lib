@@ -89,13 +89,10 @@ namespace ox::ranges {
         };
 
     private:
-        R range{};
+        R range;
         iterator _iter{std::begin(range)};
 
     public:
-        iterators_view() = default;
-        ;
-
         explicit iterators_view(R base)
             : range(base),
               _iter(std::begin(range)){};
