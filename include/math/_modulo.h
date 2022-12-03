@@ -60,10 +60,8 @@ namespace ox {
         operator T() { return result; }
     private:
         void update() {
-            if (result >= static_cast<T>(M)) {
-                result %= M;
-            }
-            while (result < 0) {
+            result %= M;
+            if (result < 0) {
                 result += M;
             }
         }
