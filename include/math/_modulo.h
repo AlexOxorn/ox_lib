@@ -29,7 +29,7 @@
   }
 
 namespace ox {
-    template <size_t M, std::integral T = std::size_t>
+    template <size_t M, std::integral T = long>
     struct modulo {
         T result;
 
