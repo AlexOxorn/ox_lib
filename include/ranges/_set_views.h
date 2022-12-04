@@ -6,8 +6,9 @@
 
 #include <ranges>
 #include <concepts>
-#include <cstdio>
 #include <type_traits>
+#include <utility>
+#include "_possibly_owning.h"
 
 namespace ox::ranges {
     template <std::ranges::input_range R, std::ranges::input_range S>
@@ -72,7 +73,8 @@ namespace ox::ranges {
         S filter;
         iterator _iter{range, filter};
     public:
-        explicit set_intersection_view(R _base, S _filter) : range(_base), filter(_filter), _iter(range, filter){};
+        explicit set_intersection_view(R _base, S _filter) :
+                range(std::move(_base)), filter(std::move(_filter)), _iter(range, filter){};
 
         constexpr R base() const & { return range; }
 
@@ -83,20 +85,19 @@ namespace ox::ranges {
         constexpr iterator end() const { return {}; }
     };
 
+    template <class R, class S>
+    set_intersection_view(R&& base, S&& filter)
+            -> set_intersection_view<possibly_owning_view_t<R>, possibly_owning_view_t<S>>;
+
     namespace details {
         template <std::ranges::input_range S>
         struct set_intersection_view_range_adaptor {
-            const S s;
-            constexpr explicit set_intersection_view_range_adaptor(const S&& s) : s(s){};
+            S s;
+            constexpr explicit set_intersection_view_range_adaptor(S&& s) : s(std::move(s)){};
 
             template <std::ranges::viewable_range R>
-            constexpr auto operator()(const R& r) const & {
-                return set_intersection_view(std::views::all(r), std::move(s));
-            }
-
-            template <std::ranges::viewable_range R>
-            constexpr auto operator()(const R&& r) const & {
-                return set_intersection_view(std::move(r), std::move(s));
+            constexpr auto operator()(R&& r) {
+                return set_intersection_view(std::forward<R>(r), std::move(s));
             }
         };
         template <std::ranges::input_range S>
@@ -105,12 +106,8 @@ namespace ox::ranges {
             constexpr explicit set_intersection_view_range_adaptor(const S& s) : s(s){};
 
             template <std::ranges::viewable_range R>
-            constexpr auto operator()(const R& r) const & {
-                return set_intersection_view(std::views::all(r), std::views::all(s));
-            }
-            template <std::ranges::viewable_range R>
-            constexpr auto operator()(const R&& r) const & {
-                return set_intersection_view(std::move(r), std::views::all(s));
+            constexpr auto operator()(R&& r) const & {
+                return set_intersection_view(std::forward<R>(r), s);
             }
         };
 
@@ -129,6 +126,11 @@ namespace ox::ranges {
 
         template <std::ranges::viewable_range R, std::ranges::viewable_range S>
         constexpr auto operator|(R&& r, const set_intersection_view_range_adaptor<S>& a) {
+            return a(std::forward<R>(r));
+        }
+
+        template <std::ranges::viewable_range R, std::ranges::viewable_range S>
+        constexpr auto operator|(R&& r, set_intersection_view_range_adaptor<S>&& a) {
             return a(std::forward<R>(r));
         }
     } // namespace details
