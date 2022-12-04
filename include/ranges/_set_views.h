@@ -6,16 +6,17 @@
 
 #include <ranges>
 #include <concepts>
+#include <cstdio>
+#include <type_traits>
 
 namespace ox::ranges {
     template <std::ranges::input_range R, std::ranges::input_range S>
-    requires std::ranges::view<R>
     class set_intersection_view : public std::ranges::view_interface<set_intersection_view<R, S>> {
     public:
         class iterator {
         public:
-            using base_itr = std::ranges::iterator_t<R>;
-            using base_filter_itr = std::ranges::iterator_t<S>;
+            using base_itr = std::ranges::iterator_t<const R>;
+            using base_filter_itr = std::ranges::iterator_t<const S>;
             using value_type = std::common_type<std::ranges::range_value_t<R>, std::ranges::range_value_t<S>>::type;
             using difference_type = std::ranges::range_difference_t<R>;
         private:
@@ -25,11 +26,11 @@ namespace ox::ranges {
             base_filter_itr last2;
             bool end;
         public:
-            iterator(): end{true}{}
-            iterator(const R& r, const S& s) : first1(std::begin(r)), last1(std::end(r)), first2(std::begin(s)),
-                    last2(std::end(s)), end(false) {
-                            ++(*this);
-                    };
+            iterator() : end{true} {}
+            iterator(const R& r, const S& s) :
+                    first1(std::begin(r)), last1(std::end(r)), first2(std::begin(s)), last2(std::end(s)), end(false) {
+                ++(*this);
+            };
 
             const value_type operator*() const { return *(this->first1); }
 
@@ -37,7 +38,7 @@ namespace ox::ranges {
                 while (first1 != last1 && first2 != last2) {
                     if (*first1 < *first2) {
                         ++first1;
-                    } else  {
+                    } else {
                         if (!(*first2 < *first1)) {
                             ++first2;
                             return *this;
@@ -48,7 +49,6 @@ namespace ox::ranges {
                 end = true;
                 return *this;
             }
-
 
             iterator operator++(int)
             requires std::ranges::forward_range<R>
@@ -72,8 +72,7 @@ namespace ox::ranges {
         S filter;
         iterator _iter{range, filter};
     public:
-        explicit set_intersection_view(R base, S filter) :
-                range(base), filter(filter), _iter(range, filter){};
+        explicit set_intersection_view(R _base, S _filter) : range(_base), filter(_filter), _iter(range, filter){};
 
         constexpr R base() const & { return range; }
 
@@ -84,19 +83,47 @@ namespace ox::ranges {
         constexpr iterator end() const { return {}; }
     };
 
-    template <class R, class S>
-    set_intersection_view(R&& base, S&& filter)
-            -> set_intersection_view<std::ranges::views::all_t<R>, std::ranges::views::all_t<S>>;
-
     namespace details {
         template <std::ranges::input_range S>
         struct set_intersection_view_range_adaptor {
-            S s;
-            constexpr explicit set_intersection_view_range_adaptor(S s) : s(std::move(s)){};
+            const S s;
+            constexpr explicit set_intersection_view_range_adaptor(const S&& s) : s(s){};
 
             template <std::ranges::viewable_range R>
-            constexpr auto operator()(R&& r) const {
-                return set_intersection_view(std::forward<R>(r), s);
+            constexpr auto operator()(const R& r) const & {
+                return set_intersection_view(std::views::all(r), std::move(s));
+            }
+
+            template <std::ranges::viewable_range R>
+            constexpr auto operator()(const R&& r) const & {
+                return set_intersection_view(std::move(r), std::move(s));
+            }
+        };
+        template <std::ranges::input_range S>
+        struct set_intersection_view_range_adaptor<S&> {
+            const S& s;
+            constexpr explicit set_intersection_view_range_adaptor(const S& s) : s(s){};
+
+            template <std::ranges::viewable_range R>
+            constexpr auto operator()(const R& r) const & {
+                return set_intersection_view(std::views::all(r), std::views::all(s));
+            }
+            template <std::ranges::viewable_range R>
+            constexpr auto operator()(const R&& r) const & {
+                return set_intersection_view(std::move(r), std::views::all(s));
+            }
+        };
+
+        struct set_intersection_view_range_adaptor2 {
+            template <class R, class S>
+            [[nodiscard]] constexpr auto operator()(R&& range, S&& filter) const {
+                return set_intersection_view(std::forward<R>(range), std::forward<S>(filter));
+            }
+
+            template <class S>
+            requires std::constructible_from<std::decay_t<S>, S>
+            [[nodiscard]] constexpr auto operator()(S&& filter) const {
+                return set_intersection_view_range_adaptor<S>(std::forward<S>(filter));
             }
         };
 
@@ -107,9 +134,6 @@ namespace ox::ranges {
     } // namespace details
 
     namespace views {
-        template <std::ranges::input_range S>
-        auto set_intersection(S&& s) {
-            return details::set_intersection_view_range_adaptor(std::forward<S>(s));
-        };
+        constexpr inline details::set_intersection_view_range_adaptor2 set_intersection;
     } // namespace views
 } // namespace ox::ranges
