@@ -185,6 +185,10 @@ namespace ox{
             SDL_GetWindowSize(window(), &to_return.first, &to_return.second);
             return to_return;
         }
+
+        void set_window_size(std::pair<int, int> size) const {
+            SDL_SetWindowSize(window(), size.first, size.second);
+        }
     };
 
     void foo();
