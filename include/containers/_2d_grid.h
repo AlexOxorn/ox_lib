@@ -11,6 +11,7 @@
 #include <cassert>
 #include <algorithm>
 #include <ranges>
+#include <functional>
 #include "ox/ranges.h"
 
 namespace ox {
@@ -23,14 +24,14 @@ namespace ox {
         void constexpr check_bound(int i, int j) const {
             if (i < 0 || i >= width)
                 throw std::out_of_range("Width index out of range");
-            if (j < 0 || std::size_t(j) >= get_height())
+            if (j < 0 || size_type(j) >= get_height())
                 throw std::out_of_range("Height index out of range");
         }
 
         [[nodiscard]] bool constexpr inbounds(int i, int j) const {
             if (i < 0 || i >= width)
                 return false;
-            if (j < 0 || std::size_t(j) >= get_height())
+            if (j < 0 || size_type(j) >= get_height())
                 return false;
             return true;
         }
@@ -44,6 +45,7 @@ namespace ox {
         using const_raw_iterator = typename container::const_iterator;
         using iterator = row_iterator<raw_iterator>;
         using const_iterator = row_iterator<const_raw_iterator>;
+        using size_type = std::size_t;
 
         template<typename... I>
         requires std::constructible_from<Container, I...>
@@ -78,7 +80,7 @@ namespace ox {
                typename std::remove_reference_t<R>::value_type row,
                typename std::remove_reference_t<R>::value_type::value_type elem,
                Container c, Proj p) {
-            {c.push_back(p(elem))};
+            {c.push_back(std::invoke(p, elem))};
             {row.size()};
         }
         constexpr explicit grid(R&& r, Proj p) {
@@ -124,11 +126,11 @@ namespace ox {
             width = new_width;
         }
 
-        [[nodiscard]] constexpr std::size_t get_height() const {
+        [[nodiscard]] constexpr size_type get_height() const {
             return data.size() / width;
         }
 
-        [[nodiscard]] constexpr std::size_t get_width() const {
+        [[nodiscard]] constexpr size_type get_width() const {
             return width;
         }
 
@@ -136,25 +138,25 @@ namespace ox {
             return data.size();
         }
 
-        [[nodiscard]] constexpr std::pair<std::size_t, std::size_t> get_dimensions() const {
+        [[nodiscard]] constexpr std::pair<size_type, size_type> get_dimensions() const {
             return {width, data.size() / width};
         }
 
-        constexpr typename Container::const_reference at(int i, int j) const {
+        constexpr typename Container::const_reference at(size_type i, size_type j) const {
             check_bound(i, j);
             return data.at(j * width + i);
         }
-        constexpr typename Container::reference at(int i, int j) {
+        constexpr typename Container::reference at(size_type i, size_type j) {
             check_bound(i, j);
             return data.at(j * width + i);
         }
 
-        constexpr typename std::optional<typename Container::value_type> get(int i, int j) const {
+        constexpr typename std::optional<typename Container::value_type> get(size_type i, size_type j) const {
             if (!inbounds(i, j))
                 return std::nullopt;
             return data[j * width + i];
         }
-        constexpr typename std::optional<typename Container::value_type> get(int i, int j) {
+        constexpr typename std::optional<typename Container::value_type> get(size_type i, size_type j) {
             if (!inbounds(i, j))
                 return std::nullopt;
             return data[j * width + i];
