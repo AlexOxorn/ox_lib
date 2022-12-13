@@ -99,7 +99,7 @@ namespace ox {
             {row.size()};
         }
         constexpr explicit grid(R&& r)
-            : grid(std::forward(r), std::identity()){};
+            : grid(std::forward<R>(r), std::identity()){};
 
         template<
                std::ranges::range R,
@@ -221,6 +221,10 @@ namespace ox {
         }
 
         constexpr const Container& get_raw() const {
+            return data;
+        }
+
+        Container& get_raw() {
             return data;
         }
 
