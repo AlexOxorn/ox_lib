@@ -69,6 +69,7 @@ add_headers(
         std_abbreviation.h
         tree.h
         matrix.h
+        hash.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
