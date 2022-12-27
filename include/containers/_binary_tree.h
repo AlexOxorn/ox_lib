@@ -117,6 +117,7 @@ namespace ox {
     public:
         class iterator;
         using reverse_iterator = std::reverse_iterator<iterator>;
+        using node = binary_tree_node<Value>;
 
         using value_type = Value;
         binary_tree_node<value_type> head;
