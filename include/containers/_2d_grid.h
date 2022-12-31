@@ -72,7 +72,10 @@ namespace ox {
         template<std::ranges::range R>
         constexpr explicit grid(int _width, R&& r)
             : width(_width) {
-            std::copy(std::ranges::begin(r), std::ranges::end(r), data.begin());
+            if constexpr (std::ranges::random_access_range<R>) {
+                data.reserve(std::ranges::distance(r));
+            }
+            std::copy(std::ranges::begin(r), std::ranges::end(r), std::back_inserter(data));
         };
 
         template<std::ranges::range R, std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj>
