@@ -49,7 +49,7 @@ namespace ox {
     class dikstra_solver {
     public:
         using NodeType = Node;
-        using NeighbourRange = decltype(std::declval<NeighbourFunction>()(std::declval<Node>()));
+        using NeighbourRange = decltype(std::invoke(std::declval<NeighbourFunction>(), std::declval<Node>()));
         using NeighbourStep = NeighbourRange::value_type;
         using Cost = NeighbourStep::second_type;
         using NodeCost = std::pair<Node, Cost>;
@@ -81,13 +81,13 @@ namespace ox {
         Cost heuristic(const Node& a, const auto& b)
         requires AStart && std::convertible_to<Heuristic, bool>
         {
-            return _heuristic ? _heuristic(a, b) : 0;
+            return _heuristic ? std::invoke(_heuristic, a, b) : 0;
         }
 
         Cost heuristic(const Node& a, const Sentinel& b)
         requires AStart
         {
-            return _heuristic(a, b);
+            return std::invoke(_heuristic, a, b);
         }
 
         template <typename... T>
@@ -97,7 +97,7 @@ namespace ox {
         }
 
         void process_neighbours(const Node& current) {
-            for (auto [neighbour, cost] : get_neighbours(current)) {
+            for (auto [neighbour, cost] : std::invoke(get_neighbours, current)) {
                 Cost tentative_score = g_score.at(current) + cost;
                 bool already_checked = g_score.contains(neighbour);
                 if (!already_checked || cmp(tentative_score, g_score[neighbour])) {
