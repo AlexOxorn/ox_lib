@@ -78,6 +78,12 @@ namespace ox {
 
         DebugFunc _debug_func;
 
+        bool track_came_from = false;
+
+        void track_path() {
+            track_came_from = true;
+        }
+
         Cost heuristic(const Node& a, const auto& b)
         requires AStart && std::convertible_to<Heuristic, bool>
         {
@@ -101,7 +107,8 @@ namespace ox {
                 Cost tentative_score = g_score.at(current) + cost;
                 bool already_checked = g_score.contains(neighbour);
                 if (!already_checked || cmp(tentative_score, g_score[neighbour])) {
-                    came_from.insert_or_assign(neighbour, current);
+                    if (track_came_from)
+                        came_from.insert_or_assign(neighbour, current);
                     g_score.insert_or_assign(neighbour, tentative_score);
                     Cost f_cost = tentative_score;
                     if constexpr (AStart)
