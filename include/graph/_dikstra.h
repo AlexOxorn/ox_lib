@@ -80,10 +80,6 @@ namespace ox {
 
         bool track_came_from = false;
 
-        void track_path() {
-            track_came_from = true;
-        }
-
         Cost heuristic(const Node& a, const auto& b)
         requires AStart && std::convertible_to<Heuristic, bool>
         {
@@ -136,6 +132,10 @@ namespace ox {
                 open_set(f_compare(cmp), std::vector{std::make_pair(start, heuristic(start, end))}) {}
 
         void set_debug_func(DebugFunc&& f) { _debug_func = std::move(f); }
+
+        void track_path() {
+            track_came_from = true;
+        }
 
         ResultType generate_final_result(const Node& current) {
             ResultPath to_return{
