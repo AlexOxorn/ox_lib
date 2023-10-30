@@ -13,6 +13,7 @@
 #include <ranges>
 #include <functional>
 #include "ox/ranges.h"
+#include "ox/algorithms.h"
 
 namespace ox {
     template<typename T, typename Container = std::vector<T>>
@@ -205,8 +206,10 @@ namespace ox {
 
         template<std::invocable<T&> I, std::invocable<> O>
         void leveled_foreach(I inner, O outer) const {
+            ox::nested_foreach(begin(), end(), outer, inner);
+            return;
             for (auto row : *this) {
-                for (const T& item : std::ranges::subrange(row.first, row.second)) {
+                for (const T& item : row) {
                     inner(item);
                 }
                 outer();
@@ -216,7 +219,9 @@ namespace ox {
         template<std::invocable<raw_iterator&> I, std::invocable<> O>
         void leveled_iterators(I inner, O outer) const {
             for (auto row : *this) {
-                for (auto [start, end] = row; start != end; ++start) {
+                auto start = row.begin();
+                auto end = row.end();
+                for (; start != end; ++start) {
                     inner(start);
                 }
                 outer();
@@ -342,34 +347,44 @@ namespace ox {
     template<typename BaseIterator>
     class grid<T, Container>::row_iterator {
     public:
+        class reference_proxy : public std::ranges::subrange<BaseIterator, BaseIterator> {
+            using std::ranges::subrange<BaseIterator, BaseIterator>::subrange;
+
+            reference_proxy& operator=(const std::ranges::range auto& range) const {
+                std::ranges::copy_n(range, get_size(), begin());
+            }
+        };
         using iterator_category = std::random_access_iterator_tag;
-        using value_type = std::pair<BaseIterator, BaseIterator>;
+        using value_type = reference_proxy;
         using difference_type = int;
-        using pointer = value_type*;
-        using referece = value_type&;
+        using pointer = reference_proxy*;
+        using const_pointer = const reference_proxy*;
+        using referece = reference_proxy&;
+        using const_reference = const reference_proxy&;
 
     private:
         int width;
         value_type current_data;
 
-        void update_data() {
-            current_data.second = current_data.first + width;
-        }
-
     public:
+        row_iterator(): width{0}, current_data() {};
+
         row_iterator(int _width, BaseIterator _curr)
             : width(_width),
               current_data{_curr, _curr + width} {}
 
-        value_type operator*() {
+
+        const_reference operator*() const {
             return current_data;
         }
-        pointer operator->() {
+        const_pointer operator->() const {
             return &current_data;
         }
         row_iterator& operator++() {
-            current_data.first += width;
-            update_data();
+            current_data = value_type{
+                    current_data.end(),
+                    current_data.end() + width
+            };
             return *this;
         }
         row_iterator operator++(int) {
@@ -377,20 +392,27 @@ namespace ox {
             ++(*this);
             return cpy;
         }
-        row_iterator operator+(int i) {
+        row_iterator operator+(int i) const {
             row_iterator cpy(*this);
-            cpy.current_data.first += width * i;
-            cpy.update_data();
+            cpy.current_data = value_type{
+                    current_data.begin() + width * i,
+                    current_data.end() + width * i
+            };
             return cpy;
         }
         row_iterator& operator+=(int i) {
-            current_data.first += width * i;
-            update_data();
+            current_data = value_type{
+                    current_data.begin() + width * i,
+                    current_data.end() + width * i
+            };
             return *this;
         }
-        row_iterator& operator--() {
+        row_iterator& operator--() const {
+            current_data = value_type{
+                    current_data.begin() - width,
+                    current_data.begin()
+            };
             current_data.first -= width;
-            update_data();
             return *this;
         }
         row_iterator operator--(int) {
@@ -398,36 +420,35 @@ namespace ox {
             --(*this);
             return cpy;
         }
-        row_iterator operator-(int i) {
+        row_iterator operator-(int i) const {
             row_iterator cpy(*this);
-            cpy.current_data.first -= width * i;
-            cpy.update_data();
+            cpy.current_data = value_type{
+                    current_data.begin() - width * i,
+                    current_data.end() - width * i
+            };
             return cpy;
         }
-        int operator-(const row_iterator& other) {
-            return (current_data.first - other.current_data.first) / width;
+        int operator-(const row_iterator& other) const {
+            return (current_data.begin() - other.current_data.begin()) / width;
         }
         row_iterator& operator-=(int i) {
-            current_data.first -= width * i;
-            update_data();
+            current_data = value_type{
+                    current_data.begin() - width * i,
+                    current_data.end() - width * i
+            };
             return *this;
         }
-        row_iterator operator[](int i) {
+        row_iterator operator[](int i) const {
             return *this + i;
         }
-        template<std::ranges::range R>
-        row_iterator& operator=(const R& r) {
-            std::copy(r, *this);
-            return *this;
-        }
         auto operator<=>(const row_iterator& other) const {
-            return current_data.first <=> other.current_data.first;
+            return current_data.begin() <=> other.current_data.begin();
         };
         bool operator==(const row_iterator& other) const {
-            return current_data.first == other.current_data.first;
+            return current_data.begin() == other.current_data.begin();
         }
         bool operator!=(const row_iterator& other) const {
-            return current_data.first != other.current_data.first;
+            return current_data.begin() != other.current_data.begin();
         }
     };
 } // namespace ox
