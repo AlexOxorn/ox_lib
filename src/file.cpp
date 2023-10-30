@@ -5,24 +5,20 @@
 
 namespace ox {
     const std::filesystem::path& executable_path() {
-        static std::filesystem::path exec_path;
-        if (exec_path.empty()) {
-            char result[ PATH_MAX ];
-            ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
-            if (count == 0) {
-                return exec_path;
+        static char result[PATH_MAX] = {};
+        if (result[0] == 0) {
+            ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+            if (count == -1) {
+                throw std::exception();
             }
-            exec_path.assign(result);
-        }     
+        }
+        static std::filesystem::path exec_path{result};
         return exec_path;
     }
 
     const std::filesystem::path& executable_folder() {
-        static std::filesystem::path exec_folder;
-        if (exec_folder.empty()) {
-            const std::filesystem::path& exec_path = executable_path();
-            exec_folder.assign(exec_path.parent_path());
-        }     
+        const std::filesystem::path& exec_path = executable_path();
+        static std::filesystem::path exec_folder{exec_path.parent_path()};
         return exec_folder;
     }
-}
+} // namespace ox

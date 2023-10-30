@@ -66,6 +66,16 @@ namespace ox {
             }
         }
     };
+
+    template <std::integral T>
+    T mod(T divisor, T denominator) {
+        return divisor - denominator * (T)floor((double)divisor/denominator);
+    }
+
+    template <std::integral T> requires std::is_unsigned_v<T>
+    T mod(T divisor, T denominator) {
+        return divisor % denominator;
+    }
 } // namespace ox
 
 #undef OP_ASSIGNMENT

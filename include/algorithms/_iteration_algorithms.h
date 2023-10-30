@@ -37,7 +37,7 @@ namespace ox {
              std::output_iterator<out, typename iter_v_type<in>::value_type>
     constexpr out flatten(in start, in end, out d_start) {
         while (start != end) {
-            for(auto a : *start) {
+            for(const auto& a : *start) {
                 *d_start++ = a;
             }
             start++;

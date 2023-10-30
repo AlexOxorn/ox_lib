@@ -24,6 +24,7 @@ namespace ox{
     sdl_instance::sdl_instance(const std::string& name, bool renderer,
                                 position _size, position _position
     ) {
+        SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
         int image_flags = IMG_INIT_PNG;
         if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
             printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
