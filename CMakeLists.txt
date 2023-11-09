@@ -70,6 +70,7 @@ add_headers(
         tree.h
         matrix.h
         hash.h
+        threading.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
