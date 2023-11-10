@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION "3.16.3")
 
 INCLUDE(FindPkgConfig)
 project(oxlib)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 if (NOT DEFINED OXLIB_MASTER_PROJECT)
   set(OXLIB_MASTER_PROJECT OFF)
@@ -12,7 +12,7 @@ if (NOT DEFINED OXLIB_MASTER_PROJECT)
   endif ()
 endif ()
 
-if(OXLIB_MASTER_PROJECT EQUAL "ON")
+if(OXLIB_MASTER_PROJECT STREQUAL "ON")
   set(OXLIB_CANVAS TRUE)
 endif()
 
@@ -30,6 +30,14 @@ function(add_sources VAR)
     set(sources ${sources} src/${source})
   endforeach()
   set(${VAR} ${sources} PARENT_SCOPE)
+endfunction()
+
+function(add_tests VAR)
+  set(tests ${${VAR}})
+  foreach (test ${ARGN})
+    set(tests ${tests} tests/${test})
+  endforeach()
+  set(${VAR} ${tests} PARENT_SCOPE)
 endfunction()
 
 find_package(Threads)
@@ -74,6 +82,15 @@ add_headers(
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
+if(OXLIB_MASTER_PROJECT STREQUAL "ON")
+  add_tests(
+          OX_TESTS
+          algorithm_test.cpp algorithm_test.h
+          threading_test.cpp threading_test.h
+          main.cpp
+  )
+endif()
+
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)
 
@@ -83,3 +100,14 @@ target_link_libraries(ox PRIVATE ${SDL2IMAGE_LIBRARIES})
 target_link_libraries(ox PRIVATE ${SDL2TTF_LIBRARIES})
 target_link_libraries(ox PRIVATE Threads::Threads)
 target_include_directories("ox" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+if(OXLIB_MASTER_PROJECT STREQUAL "ON")
+  SET(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -fdiagnostics-color=always -fsanitize=address,undefined -g")
+
+  add_executable(
+          "${PROJECT_NAME}"
+          ${OX_TESTS}
+  )
+
+  target_link_libraries("${PROJECT_NAME}" PRIVATE "ox")
+endif()

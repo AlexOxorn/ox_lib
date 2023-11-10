@@ -8,5 +8,6 @@
 #include "../multithreading/threadsafe_queue.h"
 #include "../multithreading/threadpool.h"
 #include "../multithreading/joiner.h"
+#include "../multithreading/atomic_iterator.h"
 
 #endif // ADVENTOFCODE_THREADING_H

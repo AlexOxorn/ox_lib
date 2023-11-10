@@ -15,10 +15,15 @@ namespace ox {
     class joiner {
         C* container;
     public:
-        ~joiner() {
+        void join() {
             for (auto& c : *container) {
-                c.join();
+                if (c.joinable())
+                    c.join();
             }
+        }
+
+        ~joiner() {
+            join();
         }
         explicit joiner(C& _container): container{&_container} {};
     };
