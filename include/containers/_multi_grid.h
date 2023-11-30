@@ -11,7 +11,7 @@ namespace ox {
     template <typename T, typename... Args>
     requires(std::is_convertible_v<Args, T> && ...)
     auto _pack_array(T first, Args... rest) {
-        return std::array<T, sizeof...(Args) + 1>{first, rest...};
+        return std::array<T, sizeof...(Args) + 1>{first, static_cast<T>(rest)...};
     }
 
     template <typename T, std::size_t Dimensions, typename Container = std::vector<T>>
@@ -43,19 +43,18 @@ namespace ox {
             index_data widths = pseudo_width();
             index_data abs = to_absolute_index(x);
             std::ranges::transform(abs, widths, widths.begin(), std::multiplies<>());
-            std::accumulate(widths.begin(), widths.end(), 0l);
-            return x;
+            return std::accumulate(widths.begin(), widths.end(), 0l);;
         }
 
         constexpr bool inbounds(index_data x) const {
-#ifdef __cpp_lib_ranges_zip
+#if 0 && defined(__cpp_lib_ranges_zip)
             for (auto [index, bound] : std::views::zip(x, dimensions)) {
                 if (index < 0 || index >= bound) {
                     return false;
                 }
             }
 #else
-            for (int i = 0; i < Dimensions; ++i) {
+            for (long i = 0; i < long(Dimensions); ++i) {
                 if (x[i] < 0 || x[i] >= dimensions[i]) {
                     return false;
                 }
@@ -117,11 +116,11 @@ namespace ox {
         requires std::constructible_from<Container, long>
                 : dimensions(dim), data(std::accumulate(dim.begin(), dim.end(), 1, std::multiplies<>())){};
 
-        constexpr grid2() : dimensions(), data(){};
+        constexpr grid2() : data(), dimensions(){};
 
         constexpr void set_dimensions(index_data data) { dimensions = data; }
 
-        constexpr void set_dimensions(std::integral auto... l) { set_dimensions(_pack_array(l...)); }
+        constexpr void set_dimensions(std::integral auto... l) { set_dimensions(_pack_array<long>(l...)); }
 
         constexpr long get_dimension(size_t index) { return dimensions[index]; }
 
@@ -130,18 +129,18 @@ namespace ox {
         constexpr auto get_size() const { return data.size(); }
 
         constexpr typename Container::const_reference at(std::integral auto... l) const {
-            auto bounds = _pack_array(l...);
-            check_bound_relative(bounds);
+            auto bounds = _pack_array<long>(l...);
+            check_bounds_relative(bounds);
             return data.at(get_base_index(bounds));
         }
         constexpr typename Container::reference at(std::integral auto... l) {
-            auto bounds = _pack_array(l...);
-            check_bound_relative(bounds);
+            auto bounds = _pack_array<long>(l...);
+            check_bounds_relative(bounds);
             return data.at(get_base_index(bounds));
         }
 
         constexpr typename std::optional<typename Container::value_type> get(std::integral auto... l) const {
-            auto bounds = _pack_array(l...);
+            auto bounds = _pack_array<long>(l...);
             if (!inbounds(bounds))
                 return std::nullopt;
             return data[get_base_index(bounds)];
@@ -212,12 +211,12 @@ namespace ox {
              *   z  =  index / width * length % depth
              */
             index_data widths = pseudo_width();
-            std::ranges::transform(widths, [index](long w) { return index / w; });
-            std::ranges::transform(widths, dimensions, [](long w, long dim) { return w % dim; });
+            std::ranges::transform(widths, widths.begin(), [index](long w) { return index / w; });
+            std::ranges::transform(widths, dimensions, widths.begin(), [](long w, long dim) { return w % dim; });
             return widths;
         }
 
-        [[nodiscard]] std::pair<long, long> coord_from_index(const_raw_iterator index) const {
+        [[nodiscard]] index_data coord_from_index(const_raw_iterator index) const {
             long i = index - data.begin();
             return coord_from_index(i);
         }
