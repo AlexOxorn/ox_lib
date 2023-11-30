@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 11/8/23.
-//
-
 #ifndef OX_THREADSAFE_QUEUE_H
 #define OX_THREADSAFE_QUEUE_H
 

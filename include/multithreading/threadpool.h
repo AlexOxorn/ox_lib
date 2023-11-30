@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 11/8/23.
-//
-
 #ifndef OXLIB_THREADPOOL_H
 #define OXLIB_THREADPOOL_H
 

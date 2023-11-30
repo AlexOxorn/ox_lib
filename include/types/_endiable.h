@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 2021-12-16.
-//
-
 #ifndef OXLIB__ENDIABLE_H
 #define OXLIB__ENDIABLE_H
 

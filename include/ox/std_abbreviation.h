@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 2021-12-16.
-//
-
 #ifndef OXLIB_STD_ABRIVIATIONS_H
 #define OXLIB_STD_ABRIVIATIONS_H
 

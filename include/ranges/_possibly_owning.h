@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 12/4/22.
-//
-
 #pragma once
 #include <ranges>
 

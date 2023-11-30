@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 2021-12-16.
-//
-
 #ifndef OXLIB__STRING_ALGORITHMS_H
 #define OXLIB__STRING_ALGORITHMS_H
 

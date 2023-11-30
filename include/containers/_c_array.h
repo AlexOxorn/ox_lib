@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 2021-12-16.
-//
-
 #ifndef OXLIB__C_ARRAY_H
 #define OXLIB__C_ARRAY_H
 

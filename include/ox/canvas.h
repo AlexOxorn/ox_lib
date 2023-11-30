@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 2021-08-28.
-//
-
 #ifndef OXLIB_CANVAS_H
 #define OXLIB_CANVAS_H
 

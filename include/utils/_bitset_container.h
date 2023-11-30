@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 2021-12-16.
-//
-
 #ifndef OX_LIB__BITSET_CONTAINER_H
 #define OX_LIB__BITSET_CONTAINER_H
 

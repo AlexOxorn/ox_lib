@@ -1,7 +1,3 @@
-//
-// Created by alexoxorn on 11/8/23.
-//
-
 #ifndef ADVENTOFCODE_THREADING_H
 #define ADVENTOFCODE_THREADING_H
 
