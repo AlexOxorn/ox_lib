@@ -9,6 +9,7 @@
 #include <functional>
 #include <utility>
 #include <queue>
+#include <algorithm>
 #include <ox/std_abbreviation.h>
 
 namespace ox {

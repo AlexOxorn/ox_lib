@@ -39,19 +39,28 @@ namespace ox{
             printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
         }
         _ttf_init = true;
-        _window = sdl_window{SDL_CreateWindow(
-                name.c_str(),
-                _position.first,
-                _position.second,
-                _size.first, _size.second, 
-                SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-                )};
-        if(!_window) {
-            printf( "_window could not be created! SDL_Error: %s\n", SDL_GetError() );
-            return;
+        SDL_Window* temp_win;
+        SDL_Renderer* temp_render;
+        if (renderer) {
+            SDL_CreateWindowAndRenderer(_size.first, _size.second, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE,
+                                        &temp_win, &temp_render);
+            if(!temp_win) {
+                printf( "_window could not be created! SDL_Error: %s\n", SDL_GetError() );
+                return;
+            }
+            _window.reset(temp_win);
+            _screen_renderer.reset(temp_render);
         } else {
-            if(renderer) {
-                replace_renderer();
+            _window = sdl_window{SDL_CreateWindow(
+                    name.c_str(),
+                    _position.first,
+                    _position.second,
+                    _size.first, _size.second,
+                    SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+                    )};
+            if(!_window) {
+                printf( "_window could not be created! SDL_Error: %s\n", SDL_GetError() );
+                return;
             } else {
                 resurface();
             }
