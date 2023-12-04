@@ -20,6 +20,20 @@ namespace ox {
         while (x /= base) { count++; }
         return count;
     }
+
+    template <std::integral L, std::unsigned_integral R>
+    constexpr auto fast_pow(L x, R p) -> decltype(x) {
+        if (p == 0)
+            return 1;
+        if (p == 1)
+            return x;
+
+        auto tmp = fast_pow(x, p / 2);
+        if (p % 2 == 0)
+            return tmp * tmp;
+        else
+            return x * tmp * tmp;
+    }
 }
 
 #endif //OX_LIB__SIMPLE_CONSTEXPR_MATH_H

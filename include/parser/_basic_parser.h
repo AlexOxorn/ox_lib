@@ -90,7 +90,7 @@ namespace ox::parser {
         ~Literal() override = default;
     };
     namespace literals {
-        auto operator""_l(const char* c, size_t) {
+        inline auto operator""_l(const char* c, size_t) {
             return Literal(c);
         }
     } // namespace literals
@@ -108,7 +108,7 @@ namespace ox::parser {
                 std::cout << indent << "Parsing Int in " << std::quoted(s) << std::endl;
             long l;
             const char* head = s.begin();
-            while (isspace(*head))
+            while (isspace(*head) && head < s.end())
                 ++head;
             auto [end, err] = std::from_chars(head, s.end(), l);
             if (err != std::errc{}) {
@@ -124,31 +124,42 @@ namespace ox::parser {
         };
     };
 
+    enum class ListEnding { unended, ended, either };
+
     class List : public Parser {
         std::string_view delimiter;
         ParserPoint repeat;
         std::function<std::any(void*)> callback;
-        bool tail;
+        ListEnding tail;
     public:
         List(List&&) = default;
 
         template <std::derived_from<Parser> ParserSub>
-        explicit List(const char* _delim, ParserSub&& _rep, bool _t = false) :
+        explicit List(const char* _delim, ParserSub&& _rep, ListEnding _t = ListEnding::unended) :
                 delimiter{_delim},
                 repeat(std::make_unique<ParserSub>(std::move(_rep))),
                 callback([](void*) { return nullptr; }),
                 tail(_t){};
 
+        template <std::derived_from<Parser> ParserSub>
+        explicit List(ParserSub&& _rep, ListEnding _t = ListEnding::unended) :
+                delimiter{""},
+                repeat(std::make_unique<ParserSub>(std::move(_rep))),
+                callback([](void*) { return nullptr; }),
+                tail(_t){};
+
         template <std::derived_from<Parser> ParserSub, std::invocable<void*> Func>
-        explicit List(const char* _delim, ParserSub&& _rep, const Func& _callback, bool _t = false) :
+        explicit List(const char* _delim, ParserSub&& _rep, const Func& _callback,
+                      ListEnding _t = ListEnding::unended) :
                 delimiter{_delim},
                 repeat(std::make_unique<ParserSub>(std::move(_rep))),
                 callback(_callback),
                 tail(_t){};
 
-        PARSE_HEADER {
+        parse_result parse_with_delim(void* ref, std::string_view s) const {
             if (debug)
-                std::cout << indent << "Parsing List with delim " << delimiter << " in " << std::quoted(s) << std::endl;
+                std::cout << indent << "Parsing List with delim " << std::quoted(delimiter) << " in " << std::quoted(s)
+                          << std::endl;
             size_t pos = 0;
             size_t old_pos = 0;
             long size = 0;
@@ -161,21 +172,18 @@ namespace ox::parser {
                     --_indent;
                     if (debug)
                         std::cout << indent << "Failed to parse LIST" << std::endl;
-
                     return subsize;
                 }
                 size += subsize->first + delimiter.size();
                 old_pos = pos + delimiter.size();
             }
-            if (!tail) {
+            if (tail == ListEnding::unended || (tail == ListEnding::either && old_pos != (s.size()))) {
                 std::string_view sub = s.substr(old_pos, s.end() - s.begin());
                 callback(ref);
                 auto subsize = repeat->parse(ref, sub);
                 if (!subsize) {
                     --_indent;
-                    if (debug)
-                        std::cout << indent << "Failed to parse LIST" << std::endl;
-                    return subsize;
+                   return subsize;
                 }
                 size += subsize->first;
             }
@@ -183,6 +191,36 @@ namespace ox::parser {
             if (debug)
                 std::cout << indent << "FOUND \033[31m" << std::quoted(s.substr(0, size)) << "\033[0m" << std::endl;
             return std::pair{size, std::any(nullptr)};
+        }
+
+        parse_result parse_without_delim(void* ref, std::string_view s) const {
+            if (debug)
+                std::cout << indent << "Parsing List without delim in " << std::quoted(s) << std::endl;
+            size_t pos = 0;
+            long size = 0;
+            ++_indent;
+            while (true) {
+                callback(ref);
+                std::string_view sub = s.substr(pos);
+                auto subsize = repeat->parse(ref, sub);
+                if (!subsize) {
+                    if (debug)
+                        std::cout << indent << "Failed to parse LIST" << std::endl;
+                    break;
+                }
+                size += subsize->first;
+                pos += subsize->first;
+            }
+            --_indent;
+            if (debug)
+                std::cout << indent << "FOUND \033[31m" << std::quoted(s.substr(0, size)) << "\033[0m" << std::endl;
+            return std::pair{size, std::any(nullptr)};
+        }
+
+        PARSE_HEADER {
+            if (delimiter.empty())
+                return parse_without_delim(ref, s);
+            return parse_with_delim(ref, s);
         }
 
         ~List() override = default;
