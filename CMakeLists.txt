@@ -71,6 +71,7 @@ add_headers(
         matrix.h
         hash.h
         threading.h
+        parser.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
