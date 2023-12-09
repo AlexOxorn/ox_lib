@@ -124,6 +124,26 @@ namespace ox::parser {
         };
     };
 
+    class String : public Parser {
+        std::function<std::any(void*, std::string_view)> callback;
+    public:
+        String() : callback([](auto, std::string_view l) { return l; }){};
+
+        template <std::invocable<void*, std::string_view> Func>
+        String(const Func& _callback) : callback(_callback){};
+    public:
+        PARSE_HEADER {
+            if (debug)
+                std::cout << indent << "Parsing String in " << std::quoted(s) << std::endl;
+
+            const char* head = std::find_if_not(s.begin(), s.end(), isspace);
+            const char* tail = std::find_if(head, s.end(), isspace);
+            std::string_view substr = std::string_view(head, tail);
+            callback(ref, substr);
+            return std::pair{tail - s.begin(), std::any(substr)};
+        };
+    };
+
     enum class ListEnding { unended, ended, either };
 
     class List : public Parser {

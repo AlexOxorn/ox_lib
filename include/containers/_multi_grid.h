@@ -6,14 +6,9 @@
 #include <array>
 #include <numeric>
 #include <ranges>
+#include <ox/array.h>
 
 namespace ox {
-    template <typename T, typename... Args>
-    requires(std::is_convertible_v<Args, T> && ...)
-    auto _pack_array(T first, Args... rest) {
-        return std::array<T, sizeof...(Args) + 1>{first, static_cast<T>(rest)...};
-    }
-
     template <typename T, std::size_t Dimensions, typename Container = std::vector<T>>
     struct grid2 {
         static_assert(Dimensions > 0, "Dimensions of grid must be larger than zero");
@@ -120,7 +115,7 @@ namespace ox {
 
         constexpr void set_dimensions(index_data data) { dimensions = data; }
 
-        constexpr void set_dimensions(std::integral auto... l) { set_dimensions(_pack_array<long>(l...)); }
+        constexpr void set_dimensions(std::integral auto... l) { set_dimensions(pack_array<long>(l...)); }
 
         constexpr long get_dimension(size_t index) { return dimensions[index]; }
 
@@ -129,18 +124,18 @@ namespace ox {
         constexpr auto get_size() const { return data.size(); }
 
         constexpr typename Container::const_reference at(std::integral auto... l) const {
-            auto bounds = _pack_array<long>(l...);
+            auto bounds = pack_array<long>(l...);
             check_bounds_relative(bounds);
             return data.at(get_base_index(bounds));
         }
         constexpr typename Container::reference at(std::integral auto... l) {
-            auto bounds = _pack_array<long>(l...);
+            auto bounds = pack_array<long>(l...);
             check_bounds_relative(bounds);
             return data.at(get_base_index(bounds));
         }
 
         constexpr typename std::optional<typename Container::value_type> get(std::integral auto... l) const {
-            auto bounds = _pack_array<long>(l...);
+            auto bounds = pack_array<long>(l...);
             if (!inbounds(bounds))
                 return std::nullopt;
             return data[get_base_index(bounds)];
