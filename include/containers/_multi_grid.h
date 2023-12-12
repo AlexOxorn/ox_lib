@@ -6,14 +6,27 @@
 #include <array>
 #include <numeric>
 #include <ranges>
+#include <tuple>
 #include <ox/array.h>
+#include <ox/math.h>
+#include <optional>
 
 namespace ox {
+
+    template <std::size_t Dimensions>
+    constexpr std::array<std::array<long, 3>, Dimensions> multi_dimensions() {
+        std::array<std::array<long, 3>, Dimensions> to_return;
+        std::array offsets{-1l, 0l, 1l};
+        std::fill(to_return.begin(), to_return.end(), offsets);
+        return to_return;
+    };
+
     template <typename T, std::size_t Dimensions, typename Container = std::vector<T>>
     struct grid2 {
         static_assert(Dimensions > 0, "Dimensions of grid must be larger than zero");
     protected:
         using index_data = std::array<long, Dimensions>;
+        constexpr static auto dimension_offsets = multi_dimensions<Dimensions>();
         Container data;
         index_data dimensions;
         index_data center{};
@@ -38,7 +51,7 @@ namespace ox {
             index_data widths = pseudo_width();
             index_data abs = to_absolute_index(x);
             std::ranges::transform(abs, widths, widths.begin(), std::multiplies<>());
-            return std::accumulate(widths.begin(), widths.end(), 0l);;
+            return std::accumulate(widths.begin(), widths.end(), 0l);
         }
 
         constexpr bool inbounds(index_data x) const {
@@ -142,11 +155,14 @@ namespace ox {
         }
 
 #ifdef __cpp_multidimensional_subscript
-
+        template <typename... Index>
+        constexpr typename Container::const_reference operator[](Index... args) const { return get_base_index(pack_array(args...)); }
+        template <typename... Index>
+        constexpr typename Container::reference operator[](Index... args) { return get_base_index(pack_array(args...)); }
 #endif
 
-        constexpr typename Container::const_reference operator[](int i) { return data[i]; }
-        constexpr typename Container::reference operator[](int i) const { return data[i]; }
+        constexpr typename Container::const_reference operator[](int i) const { return data[i]; }
+        constexpr typename Container::reference operator[](int i) { return data[i]; }
 
         constexpr auto operator<=>(const grid2& other) const
         requires std::three_way_comparable<Container>
@@ -215,6 +231,52 @@ namespace ox {
             long i = index - data.begin();
             return coord_from_index(i);
         }
+
+#ifdef __cpp_lib_ranges_cartesian_product
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        auto neighbour_range(Pointer index) {
+            auto curr_index = coord_from_index(index);
+            constexpr auto return_size = ox::fast_pow(3zu, Dimensions) - 1;
+            std::array<std::optional<Pointer>, return_size> to_return;
+            auto head = to_return.begin();
+            for (auto offsets_t : std::apply(std::views::cartesian_product, dimension_offsets)) {
+                auto offsets = array_from_tuple(offsets_t);
+                if (std::all_of(offsets.begin(), offsets.end(), [](long l) { return l == 0; }))
+                    continue;
+
+                std::ranges::transform(offsets, curr_index, offsets.begin(), std::plus());
+                if (!inbounds(offsets)) {
+                    *head++ = std::nullopt;
+                } else {
+                    *head++ = data.begin() + get_base_index(offsets);
+                }
+            }
+            return to_return;
+        }
+
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        auto cardinal_neighbour_range(Pointer index) {
+            auto curr_index = coord_from_index(index);
+            std::array<std::optional<Pointer>, 2 * Dimensions> to_return;
+            auto head = to_return.begin();
+            for (auto [offset, index] :
+                 std::views::cartesian_product(std::array{-1l, 1l}, std::views::iota(0l, long(Dimensions)))) {
+                auto new_index = curr_index;
+                new_index[index] += offset;
+
+                if (!inbounds(new_index)) {
+                    *head++ = std::nullopt;
+                } else {
+                    *head++ = data.begin() + get_base_index(new_index);
+                }
+            }
+            return to_return;
+        }
+#endif
 
 #undef NLongConcept
     };

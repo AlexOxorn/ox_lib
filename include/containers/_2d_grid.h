@@ -161,22 +161,7 @@ namespace ox {
             return *curr + get_width();
         }
 
-        auto neighbour_range(const_raw_iterator current) {
-            std::array neighbours{up(current),
-                                  up(left(current)),
-                                  left(current),
-                                  down(left(current)),
-                                  down(current),
-                                  down(right(current)),
-                                  right(current),
-                                  up(right(current))};
-            return neighbours;
-        }
-        auto cardinal_neighbour_range(const_raw_iterator current) {
-            std::array neighbours{up(current), left(current), down(current), right(current)};
-            return neighbours;
-        }
-
+#ifndef __cpp_lib_ranges_cartesian_product
         auto neighbour_range(raw_iterator current) {
             std::array neighbours{up(std::optional(current)),
                                   up(left(std::optional(current))),
@@ -188,6 +173,24 @@ namespace ox {
                                   up(right(std::optional(current)))};
             return neighbours;
         }
+
+        auto neighbour_range(const_raw_iterator current) {
+            std::array neighbours{up(current),
+                                  up(left(current)),
+                                  left(current),
+                                  down(left(current)),
+                                  down(current),
+                                  down(right(current)),
+                                  right(current),
+                                  up(right(current))};
+            return neighbours;
+        }
+
+        auto cardinal_neighbour_range(const_raw_iterator current) {
+            std::array neighbours{up(current), left(current), down(current), right(current)};
+            return neighbours;
+        }
+
         auto cardinal_neighbour_range(raw_iterator current) {
             std::array neighbours{up(std::optional(current)),
                                   left(std::optional(current)),
@@ -195,6 +198,7 @@ namespace ox {
                                   right(std::optional(current))};
             return neighbours;
         }
+#endif
 
         static auto valid_index() {
             return std::views::filter([](std::optional<raw_iterator> x) { return x.has_value(); })

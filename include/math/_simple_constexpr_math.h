@@ -11,7 +11,7 @@ namespace ox {
 
     constexpr inline int triangle_sum(int x) {
         assert(x >= 0);
-        auto y = stdv::iota(1, x+1);
+        auto y = std::views::iota(1, x+1);
         return std::accumulate(y.begin(), y.end(), 0);
     }
 
