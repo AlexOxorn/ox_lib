@@ -38,10 +38,10 @@ namespace ox {
         };
 
         template <std::ranges::range R,
-                  std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj>
-        requires std::ranges::range<typename std::remove_reference_t<R>::value_type>
-              && requires(typename std::remove_reference_t<R>::value_type row,
-                          typename std::remove_reference_t<R>::value_type::value_type elem, Container c, Proj p) {
+                  std::invocable<typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>>> Proj>
+        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>>
+              && requires(typename std::ranges::range_value_t<std::remove_reference_t<R>> row,
+                          typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>> elem, Container c, Proj p) {
                      { c.push_back(std::invoke(p, elem)) };
                      { row.size() };
                  }
@@ -54,17 +54,17 @@ namespace ox {
         };
 
         template <std::ranges::range R>
-        requires std::ranges::range<typename R::value_type>
-              && requires(typename std::remove_reference_t<R>::value_type row,
-                          typename std::remove_reference_t<R>::value_type::value_type elem, Container c) {
+        requires std::ranges::range<typename std::ranges::range_value_t<R>>
+              && requires(typename std::ranges::range_value_t<std::remove_reference_t<R>> row,
+                          typename std::ranges::range_value_t<typename std::remove_reference_t<R>::value_type> elem, Container c) {
                      { c.push_back(elem) };
                      { row.size() };
                  }
         constexpr explicit grid(R&& r) : grid(std::forward<R>(r), std::identity()){};
 
         template <std::ranges::range R,
-                  std::invocable<typename std::remove_reference_t<R>::value_type::value_type> Proj>
-        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> && std::is_aggregate_v<Container>
+                  std::invocable<typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>>> Proj>
+        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>> && std::is_aggregate_v<Container>
         constexpr explicit grid(R&& r, Proj p) {
             for (auto& row : r) {
                 this->dimensions[0] = row.size();
@@ -73,7 +73,7 @@ namespace ox {
         };
 
         template <std::ranges::range R>
-        requires std::ranges::range<typename std::remove_reference_t<R>::value_type> && std::is_aggregate_v<Container>
+        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>> && std::is_aggregate_v<Container>
         constexpr explicit grid(R&& r) : grid(std::forward(r), std::identity()){};
 
         constexpr void set_width(int new_width) {

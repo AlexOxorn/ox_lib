@@ -55,6 +55,7 @@ namespace ox {
         }
 
         constexpr bool inbounds(index_data x) const {
+            x = to_absolute_index(x);
 #if 0 && defined(__cpp_lib_ranges_zip)
             for (auto [index, bound] : std::views::zip(x, dimensions)) {
                 if (index < 0 || index >= bound) {
@@ -156,9 +157,9 @@ namespace ox {
 
 #ifdef __cpp_multidimensional_subscript
         template <typename... Index>
-        constexpr typename Container::const_reference operator[](Index... args) const { return get_base_index(pack_array(args...)); }
+        constexpr typename Container::const_reference operator[](Index... args) const { return data[get_base_index(pack_array(args...))]; }
         template <typename... Index>
-        constexpr typename Container::reference operator[](Index... args) { return get_base_index(pack_array(args...)); }
+        constexpr typename Container::reference operator[](Index... args) { return data[get_base_index(pack_array(args...))]; }
 #endif
 
         constexpr typename Container::const_reference operator[](int i) const { return data[i]; }
