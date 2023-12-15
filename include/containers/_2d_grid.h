@@ -119,46 +119,63 @@ namespace ox {
         iterator begin() { return iterator(dimensions[0], data.begin()); }
         iterator end() { return iterator(dimensions[0], data.end()); }
 
-        [[nodiscard]] std::optional<raw_iterator> up(std::optional<raw_iterator> curr) const {
+
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> up(std::optional<Pointer> curr) const {
             if (!curr || (*curr - get_width()) < data.begin())
                 return std::nullopt;
             return *curr - get_width();
         }
-        [[nodiscard]] std::optional<raw_iterator> left(std::optional<raw_iterator> curr) const {
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> left(std::optional<Pointer> curr) const {
             if (!curr || (*curr - data.begin()) % get_width() == 0)
                 return std::nullopt;
             return *curr - 1;
         }
-        [[nodiscard]] std::optional<raw_iterator> right(std::optional<raw_iterator> curr) const {
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> right(std::optional<Pointer> curr) const {
             if (!curr || (*curr - data.begin() + 1) % get_width() == 0)
                 return std::nullopt;
             return *curr + 1;
         }
-        [[nodiscard]] std::optional<raw_iterator> down(std::optional<raw_iterator> curr) const {
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> down(std::optional<Pointer> curr) const {
             if (!curr || (*curr + get_width()) >= data.end())
                 return std::nullopt;
             return *curr + get_width();
         }
 
-        [[nodiscard]] std::optional<const_raw_iterator> up(std::optional<const_raw_iterator> curr) const {
-            if (!curr || (*curr - get_width()) < data.begin())
-                return std::nullopt;
-            return *curr - get_width();
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> up(Pointer curr) const {
+            return up(std::optional(curr));
         }
-        [[nodiscard]] std::optional<const_raw_iterator> left(std::optional<const_raw_iterator> curr) const {
-            if (!curr || (*curr - data.begin()) % get_width() == 0)
-                return std::nullopt;
-            return *curr - 1;
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> left(Pointer curr) const {
+            return left(std::optional(curr));
         }
-        [[nodiscard]] std::optional<const_raw_iterator> right(std::optional<const_raw_iterator> curr) const {
-            if (!curr || (*curr - data.begin() + 1) % get_width() == 0)
-                return std::nullopt;
-            return *curr + 1;
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> right(Pointer curr) const {
+            return right(std::optional(curr));
         }
-        [[nodiscard]] std::optional<const_raw_iterator> down(std::optional<const_raw_iterator> curr) const {
-            if (!curr || (*curr + get_width()) >= data.end())
-                return std::nullopt;
-            return *curr + get_width();
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
+                 || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
+        [[nodiscard]] std::optional<Pointer> down(Pointer curr) const {
+            return down(std::optional(curr));
         }
 
 #ifndef __cpp_lib_ranges_cartesian_product
@@ -216,6 +233,7 @@ namespace ox {
     class grid<T, Container>::row_iterator {
     public:
         class reference_proxy : public std::ranges::subrange<BaseIterator, BaseIterator> {
+        public:
             using std::ranges::subrange<BaseIterator, BaseIterator>::subrange;
 
             reference_proxy& operator=(const std::ranges::range auto& range) const {
@@ -257,9 +275,8 @@ namespace ox {
             current_data = value_type{current_data.begin() + width * i, current_data.end() + width * i};
             return *this;
         }
-        row_iterator& operator--() const {
+        row_iterator& operator--() {
             current_data = value_type{current_data.begin() - width, current_data.begin()};
-            current_data.first -= width;
             return *this;
         }
         row_iterator operator--(int) {
