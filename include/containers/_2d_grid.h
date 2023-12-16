@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <ranges>
 #include <functional>
+#include <type_traits>
 #include "_multi_grid.h"
 #include "ox/ranges.h"
 #include "ox/algorithms.h"
@@ -37,11 +38,14 @@ namespace ox {
             set_width(_width);
         };
 
-        template <std::ranges::range R,
-                  std::invocable<typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>>> Proj>
+        template <std::ranges::range R, std::invocable<typename std::ranges::range_value_t<
+                                                std::ranges::range_value_t<std::remove_reference_t<R>>>>
+                                                Proj>
         requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>>
               && requires(typename std::ranges::range_value_t<std::remove_reference_t<R>> row,
-                          typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>> elem, Container c, Proj p) {
+                          typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>>
+                                  elem,
+                          Container c, Proj p) {
                      { c.push_back(std::invoke(p, elem)) };
                      { row.size() };
                  }
@@ -56,15 +60,18 @@ namespace ox {
         template <std::ranges::range R>
         requires std::ranges::range<typename std::ranges::range_value_t<R>>
               && requires(typename std::ranges::range_value_t<std::remove_reference_t<R>> row,
-                          typename std::ranges::range_value_t<typename std::remove_reference_t<R>::value_type> elem, Container c) {
+                          typename std::ranges::range_value_t<typename std::remove_reference_t<R>::value_type> elem,
+                          Container c) {
                      { c.push_back(elem) };
                      { row.size() };
                  }
         constexpr explicit grid(R&& r) : grid(std::forward<R>(r), std::identity()){};
 
-        template <std::ranges::range R,
-                  std::invocable<typename std::ranges::range_value_t<std::ranges::range_value_t<std::remove_reference_t<R>>>> Proj>
-        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>> && std::is_aggregate_v<Container>
+        template <std::ranges::range R, std::invocable<typename std::ranges::range_value_t<
+                                                std::ranges::range_value_t<std::remove_reference_t<R>>>>
+                                                Proj>
+        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>>
+              && std::is_aggregate_v<Container>
         constexpr explicit grid(R&& r, Proj p) {
             for (auto& row : r) {
                 this->dimensions[0] = row.size();
@@ -73,7 +80,8 @@ namespace ox {
         };
 
         template <std::ranges::range R>
-        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>> && std::is_aggregate_v<Container>
+        requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>>
+              && std::is_aggregate_v<Container>
         constexpr explicit grid(R&& r) : grid(std::forward(r), std::identity()){};
 
         constexpr void set_width(int new_width) {
@@ -113,12 +121,22 @@ namespace ox {
                 outer();
             }
         }
+
+#ifdef __cpp_lib_ranges_chunk
+        auto begin() const { return stdr::chunk_view(data, get_width()).begin(); }
+        auto end() const { return stdr::chunk_view(data, get_width()).end(); }
+#else
         const_iterator begin() const { return const_iterator(dimensions[0], data.begin()); }
         const_iterator end() const { return const_iterator(dimensions[0], data.end()); }
+#endif
 
+#ifdef __cpp_lib_ranges_chunk
+        auto begin() { return stdr::chunk_view(data, get_width()).begin(); };
+        auto end() { return stdr::chunk_view(data, get_width()).end(); };
+#else
         iterator begin() { return iterator(dimensions[0], data.begin()); }
         iterator end() { return iterator(dimensions[0], data.end()); }
-
+#endif
 
         template <typename Pointer>
         requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
@@ -303,6 +321,28 @@ namespace ox {
         bool operator==(const row_iterator& other) const { return current_data.begin() == other.current_data.begin(); }
         bool operator!=(const row_iterator& other) const { return current_data.begin() != other.current_data.begin(); }
     };
+
+#ifdef __cpp_lib_ranges_chunk
+//    template <typename T, typename Container>
+//    auto grid<T, Container>::begin() const {
+//        return stdr::chunk_view(data, get_width()).begin();
+//    }
+//
+//    template <typename T, typename Container>
+//    auto grid<T, Container>::end() const {
+//        return stdr::chunk_view(data, get_width()).end();
+//    }
+//
+//    template <typename T, typename Container>
+//    auto grid<T, Container>::begin() {
+//        return stdr::chunk_view(data, get_width()).begin();
+//    }
+//
+//    template <typename T, typename Container>
+//    auto grid<T, Container>::end() {
+//        return stdr::chunk_view(data, get_width()).end();
+//    }
+#endif
 } // namespace ox
 
 #endif // OX_LIB__2D_GRID_H
