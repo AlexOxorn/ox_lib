@@ -98,9 +98,6 @@ namespace ox {
         requires std::constructible_from<Container, ContainerArgs...>
         constexpr explicit grid2(index_data dim, ContainerArgs... args) : data(args...), dimensions(dim){};
 
-        template <typename... ContainerElems>
-        constexpr explicit grid2(index_data dim, ContainerElems... args) : data({args...}), dimensions(dim){};
-
         template <std::ranges::range R>
         requires std::constructible_from<Container, decltype(std::ranges::begin(std::declval<R>())),
                                          decltype(std::ranges::end(std::declval<R>()))>
@@ -115,15 +112,15 @@ namespace ox {
 
         template <std::ranges::range R>
         constexpr explicit grid2(index_data dim, R&& r) : dimensions(dim) {
-            if constexpr (std::ranges::random_access_range<R>) {
-                data.reserve(std::ranges::distance(r));
+            if constexpr (std::ranges::sized_range<R>) {
+                data.reserve(std::ranges::size(r));
             }
             std::copy(std::ranges::begin(r), std::ranges::end(r), std::back_inserter(data));
         };
 
         constexpr grid2(index_data dim)
         requires std::constructible_from<Container, long>
-                : dimensions(dim), data(std::accumulate(dim.begin(), dim.end(), 1, std::multiplies<>())){};
+                : data(std::accumulate(dim.begin(), dim.end(), 1, std::multiplies<>())), dimensions(dim){};
 
         constexpr grid2() : data(), dimensions(){};
 
@@ -131,7 +128,15 @@ namespace ox {
 
         constexpr void set_dimensions(std::integral auto... l) { set_dimensions(pack_array<long>(l...)); }
 
+        constexpr void set_center(index_data data) { center = data; }
+
+        constexpr void set_center(std::integral auto... l) { center = pack_array<long>(l...); }
+
+        constexpr auto get_center() const { return center; };
+
         constexpr long get_dimension(size_t index) { return dimensions[index]; }
+
+        constexpr auto get_dimensions() const { return dimensions; };
 
         constexpr index_data get_dimensions() { return dimensions; }
 
@@ -157,13 +162,19 @@ namespace ox {
 
 #ifdef __cpp_multidimensional_subscript
         template <typename... Index>
-        constexpr typename Container::const_reference operator[](Index... args) const { return data[get_base_index(pack_array(args...))]; }
+        constexpr typename Container::const_reference operator[](Index... args) const {
+            return data[get_base_index(pack_array(args...))];
+        }
         template <typename... Index>
-        constexpr typename Container::reference operator[](Index... args) { return data[get_base_index(pack_array(args...))]; }
+        constexpr typename Container::reference operator[](Index... args) {
+            return data[get_base_index(pack_array(args...))];
+        }
 #endif
 
         constexpr typename Container::const_reference operator[](int i) const { return data[i]; }
         constexpr typename Container::reference operator[](int i) { return data[i]; }
+        constexpr typename Container::const_reference operator[](index_data i) const { return data[get_base_index(i)]; }
+        constexpr typename Container::reference operator[](index_data i) { return data[get_base_index(i)]; }
 
         constexpr auto operator<=>(const grid2& other) const
         requires std::three_way_comparable<Container>
@@ -225,12 +236,23 @@ namespace ox {
             index_data widths = pseudo_width();
             std::ranges::transform(widths, widths.begin(), [index](long w) { return index / w; });
             std::ranges::transform(widths, dimensions, widths.begin(), [](long w, long dim) { return w % dim; });
-            return widths;
+            return to_relative_index(widths);
         }
 
         [[nodiscard]] index_data coord_from_index(const_raw_iterator index) const {
             long i = index - data.begin();
             return coord_from_index(i);
+        }
+
+        long index_from_coord(index_data coord) {
+            return get_base_index(coord);
+        }
+
+        auto iterator_from_coord(index_data coord) {
+            return data.begin() + get_base_index(coord);
+        }
+        auto iterator_from_coord(index_data coord) const {
+            return data.begin() + get_base_index(coord);
         }
 
 #ifdef __cpp_lib_ranges_cartesian_product

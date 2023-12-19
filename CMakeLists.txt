@@ -72,6 +72,7 @@ add_headers(
         hash.h
         threading.h
         parser.h
+        infinite_grid.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 

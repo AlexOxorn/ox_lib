@@ -17,6 +17,17 @@
 namespace ox {
     struct color {
         int r, g, b;
+
+        constexpr color() = default;
+        constexpr color(int r, int g, int b) : r{r}, g{g}, b{b} {};
+        constexpr explicit color(uint32_t rgb) {
+            b = int(rgb & 0xff);
+            rgb >>= 8;
+            g = int(rgb & 0xff);
+            rgb >>= 8;
+            r = int(rgb & 0xff);
+        }
+
         [[nodiscard]] unsigned long rgb255() const {
             return b + (g << 8) + (r << 16);
         }
@@ -54,6 +65,9 @@ namespace ox {
         double h, s, l;
     };
 
+    inline std::ostream& operator<<(std::ostream& out, const color& c) {
+        return out << ox::format{ox::escape::direct_color, 2, c.r, c.g, c.b};
+    }
 
     inline unsigned long rgb255(color c) {
         return c.rgb255();

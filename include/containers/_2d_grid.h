@@ -17,8 +17,9 @@ namespace ox {
     template <typename T, typename Container = std::vector<T>>
     class grid : public grid2<T, 2, Container> {
     public:
-        using grid2<T, 2, Container>::grid2;
+        //        using grid2<T, 2, Container>::grid2;
         using grid2<T, 2, Container>::data;
+        using typename grid2<T, 2, Container>::index_data;
         using grid2<T, 2, Container>::dimensions;
         using grid2<T, 2, Container>::center;
         using grid2<T, 2, Container>::get_size;
@@ -34,9 +35,19 @@ namespace ox {
         using size_type = std::size_t;
 
         template <typename... I>
-        constexpr explicit grid(int _width, I... args) : grid2<T, 2, Container>({}, args...) {
+        constexpr explicit grid(int _width, I... args) : grid2<T, 2, Container>(index_data(), args...) {
             set_width(_width);
         };
+        constexpr explicit grid(int _width, std::initializer_list<T> args) :
+                grid2<T, 2, Container>(index_data(), args) {
+            set_width(_width);
+        };
+
+        constexpr grid() = default;
+        constexpr grid(grid&&) = default;
+        constexpr grid(const grid&) = default;
+        grid& operator=(grid&&) = default;
+        grid& operator=(const grid&) = default;
 
         template <std::ranges::range R, std::invocable<typename std::ranges::range_value_t<
                                                 std::ranges::range_value_t<std::remove_reference_t<R>>>>
@@ -83,6 +94,9 @@ namespace ox {
         requires std::ranges::range<typename std::ranges::range_value_t<std::remove_reference_t<R>>>
               && std::is_aggregate_v<Container>
         constexpr explicit grid(R&& r) : grid(std::forward(r), std::identity()){};
+
+        constexpr grid(ox::grid2<T, 2, Container>&& other) : ox::grid2<T, 2, Container>{std::move(other)} {}
+        constexpr grid(const ox::grid2<T, 2, Container>& other) : ox::grid2<T, 2, Container>{other} {}
 
         constexpr void set_width(int new_width) {
             assert(data.size() % new_width == 0);
