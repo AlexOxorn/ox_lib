@@ -3,6 +3,7 @@
 #ifndef OXLIBCODE_BASIC_PARSER
 #define OXLIBCODE_BASIC_PARSER
 
+#include <utility>
 #include <vector>
 #include <utility>
 #include <charconv>
@@ -88,6 +89,15 @@ namespace ox::parser {
             return std::pair{long(index + match.size()), x};
         }
         ~Literal() override = default;
+
+        Literal operator()(std::function<std::any(void*, std::string_view)> _callback) && {
+            callback = std::move(_callback);
+            return *this;
+        }
+        Literal& operator()(std::function<std::any(void*, std::string_view)> _callback) & {
+            callback = std::move(_callback);
+            return *this;
+        }
     };
     namespace literals {
         inline auto operator""_l(const char* c, size_t) {
@@ -125,21 +135,37 @@ namespace ox::parser {
     };
 
     class String : public Parser {
+        std::string_view delim;
         std::function<std::any(void*, std::string_view)> callback;
     public:
         String() : callback([](auto, std::string_view l) { return l; }){};
 
         template <std::invocable<void*, std::string_view> Func>
         String(const Func& _callback) : callback(_callback){};
+
+        template <std::invocable<void*, std::string_view> Func>
+        String(std::string_view in_delim, const Func& _callback) : delim(in_delim), callback(_callback){};
+
+        String(std::string_view in_delim) : delim(in_delim), callback([](auto, std::string_view l) { return l; }){};
     public:
         PARSE_HEADER {
             if (debug)
                 std::cout << indent << "Parsing String in " << std::quoted(s) << std::endl;
-
-            const char* head = std::find_if_not(s.begin(), s.end(), isspace);
-            const char* tail = std::find_if(head, s.end(), isspace);
+            const char* head;
+            const char* tail;
+            if (delim.empty()) {
+                head = std::find_if_not(s.begin(), s.end(), isspace);
+                tail = std::find_if(head, s.end(), isspace);
+            } else {
+                head = std::find_if_not(s.begin(), s.end(), isspace);
+                tail = std::min(std::find_if(head, s.end(), isspace),
+                                std::search(head, s.end(), delim.begin(), delim.end()));
+            }
             std::string_view substr = std::string_view(head, tail);
             callback(ref, substr);
+            if (debug)
+                std::cout << indent << "FOUND \033[31m" << std::quoted(substr) << "\033[0m" << std::endl;
+
             return std::pair{tail - s.begin(), std::any(substr)};
         };
     };
@@ -203,7 +229,7 @@ namespace ox::parser {
                 auto subsize = repeat->parse(ref, sub);
                 if (!subsize) {
                     --_indent;
-                   return subsize;
+                    return subsize;
                 }
                 size += subsize->first;
             }
@@ -325,7 +351,7 @@ namespace ox::parser {
     public:
         PARSE_HEADER {
             if (debug)
-                std::cout << indent << "Parsing Combination in " << std::quoted(s) << std::endl;
+                std::cout << indent << "Parsing Disjoint in " << std::quoted(s) << std::endl;
             ++_indent;
             for (const auto& part : this->parts) {
                 auto read = part->parse(ref, s);
@@ -339,7 +365,7 @@ namespace ox::parser {
             }
             --_indent;
             if (debug)
-                std::cout << indent << "FAILED to find OR" << std::endl;
+                std::cout << indent << "FAILED to find Disjoint" << std::endl;
             return std::unexpected(ParseError::bad);
         };
     };
