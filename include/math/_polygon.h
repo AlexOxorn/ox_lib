@@ -39,7 +39,7 @@ namespace ox {
                 long j = (i + 1) % size;
                 res += distance(points[i], points[j]);
             }
-            return std::abs(res / 2);
+            return std::abs(res);
         }
 
         [[nodiscard]] constexpr P flat_boundary_count() const {
