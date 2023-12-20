@@ -137,17 +137,27 @@ namespace ox {
         }
 
 #ifdef __cpp_lib_ranges_chunk
-        auto begin() const { return stdr::chunk_view(data, get_width()).begin(); }
-        auto end() const { return stdr::chunk_view(data, get_width()).end(); }
+        auto begin() const { return std::ranges::chunk_view(data, get_width()).begin(); }
+        auto end() const { return std::ranges::chunk_view(data, get_width()).end(); }
+        auto begin() { return std::ranges::chunk_view(data, get_width()).begin(); };
+        auto end() { return std::ranges::chunk_view(data, get_width()).end(); };
+
+        auto rows_view() const { return std::ranges::chunk_view(data, get_width()); }
+        auto rows_view() { return std::ranges::chunk_view(data, get_width()); }
+
+        auto column_view() const {
+            return std::ranges::iota_view(0zu, dimensions[0]) | std::views::transform([](size_t l) {
+                       return std::ranges::subrange(data.begin() + l, data.end()) | std::views::stride(dimensions[0]);
+                   });
+        }
+        auto column_view() {
+            return std::ranges::iota_view(0zu, dimensions[0]) | std::views::transform([](size_t l) {
+                       return std::ranges::subrange(data.begin() + l, data.end()) | std::views::stride(dimensions[0]);
+                   });
+        }
 #else
         const_iterator begin() const { return const_iterator(dimensions[0], data.begin()); }
         const_iterator end() const { return const_iterator(dimensions[0], data.end()); }
-#endif
-
-#ifdef __cpp_lib_ranges_chunk
-        auto begin() { return stdr::chunk_view(data, get_width()).begin(); };
-        auto end() { return stdr::chunk_view(data, get_width()).end(); };
-#else
         iterator begin() { return iterator(dimensions[0], data.begin()); }
         iterator end() { return iterator(dimensions[0], data.end()); }
 #endif
