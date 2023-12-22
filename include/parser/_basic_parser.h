@@ -12,6 +12,7 @@
 #include <any>
 #include <concepts>
 #include <functional>
+#include <algorithm>
 
 namespace ox::parser {
     enum class ParseError {
