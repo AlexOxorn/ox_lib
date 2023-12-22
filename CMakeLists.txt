@@ -74,6 +74,7 @@ add_headers(
         parser.h
         infinite_grid.h
         polygon.h
+        combinators.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
