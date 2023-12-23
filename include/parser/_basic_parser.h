@@ -171,6 +171,30 @@ namespace ox::parser {
         };
     };
 
+    class Optional : public Parser {
+        ParserPoint sub_parser;
+    public:
+        template <std::derived_from<Parser> ParserType>
+        Optional(ParserType&& sub) : sub_parser(new ParserType(sub)){};
+    public:
+        PARSE_HEADER {
+            if (debug)
+                std::cout << indent << "Parsing Optional in " << std::quoted(s) << std::endl;
+
+            auto res = sub_parser->parse(ref, s);
+            if (res) {
+                if (debug)
+                    std::cout << indent << "FOUND OPTIONAL \033[0m" << std::endl;
+                return res;
+            }
+
+            if (debug)
+                std::cout << indent << "FAILED OPTIONAL \033[0m" << std::endl;
+
+            return std::pair{0, 0};
+        };
+    };
+
     enum class ListEnding { unended, ended, either };
 
     class List : public Parser {
@@ -392,6 +416,11 @@ namespace ox::parser {
     Combination operator+(Combination&& l, ParserSub&& r) {
         l.parts.emplace_back(new ParserSub(std::move(r)));
         return std::move(l);
+    }
+
+    template <std::derived_from<Parser> ParserSub>
+    Optional operator!(ParserSub&& p) {
+        return Optional(std::move(p));
     }
 } // namespace ox::parser
 
