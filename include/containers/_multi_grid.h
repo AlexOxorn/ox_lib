@@ -154,7 +154,10 @@ namespace ox {
         }
 
         constexpr typename std::optional<typename Container::value_type> get(std::integral auto... l) const {
-            auto bounds = pack_array<long>(l...);
+            return get(pack_array<long>(l...));
+        }
+
+        constexpr typename std::optional<typename Container::value_type> get(index_data bounds) const {
             if (!inbounds(bounds))
                 return std::nullopt;
             return data[get_base_index(bounds)];
@@ -257,6 +260,28 @@ namespace ox {
 
 #ifdef __cpp_lib_ranges_cartesian_product
         template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>)
+        auto neighbour_range(Pointer index) const {
+            auto curr_index = coord_from_index(index);
+            constexpr auto return_size = ox::fast_pow(3zu, Dimensions) - 1;
+            std::array<std::optional<Pointer>, return_size> to_return;
+            auto head = to_return.begin();
+            for (auto offsets_t : std::apply(std::views::cartesian_product, dimension_offsets)) {
+                auto offsets = array_from_tuple(offsets_t);
+                if (std::all_of(offsets.begin(), offsets.end(), [](long l) { return l == 0; }))
+                    continue;
+
+                std::ranges::transform(offsets, curr_index, offsets.begin(), std::plus());
+                if (!inbounds(offsets)) {
+                    *head++ = std::nullopt;
+                } else {
+                    *head++ = data.begin() + get_base_index(offsets);
+                }
+            }
+            return to_return;
+        }
+
+        template <typename Pointer>
         requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>
                  || std::is_same_v<std::remove_cv_t<Pointer>, raw_iterator>)
         auto neighbour_range(Pointer index) {
@@ -274,6 +299,26 @@ namespace ox {
                     *head++ = std::nullopt;
                 } else {
                     *head++ = data.begin() + get_base_index(offsets);
+                }
+            }
+            return to_return;
+        }
+
+        template <typename Pointer>
+        requires(std::is_same_v<std::remove_cv_t<Pointer>, const_raw_iterator>)
+        auto cardinal_neighbour_range(Pointer index) const {
+            auto curr_index = coord_from_index(index);
+            std::array<std::optional<Pointer>, 2 * Dimensions> to_return;
+            auto head = to_return.begin();
+            for (auto [offset, index] :
+                 std::views::cartesian_product(std::array{-1l, 1l}, std::views::iota(0l, long(Dimensions)))) {
+                auto new_index = curr_index;
+                new_index[index] += offset;
+
+                if (!inbounds(new_index)) {
+                    *head++ = std::nullopt;
+                } else {
+                    *head++ = data.begin() + get_base_index(new_index);
                 }
             }
             return to_return;

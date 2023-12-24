@@ -1,5 +1,6 @@
 #pragma once
 #include <concepts>
+#include <cmath>
 
 #define OP_ASSIGNMENT(op, T, val) \
   T& operator op##=(const T& other) { \
