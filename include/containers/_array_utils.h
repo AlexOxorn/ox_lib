@@ -34,6 +34,52 @@ namespace ox {
     auto array_from_tuple(const std::pair<T...>& t) {
         return array_from_tuple(t, std::make_index_sequence<2>());
     }
+
+    template <typename F, std::size_t... Is>
+    constexpr auto map_index_sequence(std::index_sequence<Is...>, F f) {
+        return std::index_sequence<f(Is)...>();
+    }
+
+#define transform_N_template template <size_t Elm, template <typename...> typename T, typename... Types, typename Func, std::size_t... Pre, std::size_t... Post>
+#define transform_N_args const T<Types...>& x, const Func& f, std::index_sequence<Pre...>, std::index_sequence<Post...>
+
+    transform_N_template
+    auto transform_N(transform_N_args) {
+        return T{std::get<Pre>(x)..., f(std::get<Elm>(x)), std::get<Post>(x)...};
+    }
+
+    transform_N_template
+    requires (sizeof...(Pre) == 0) && (sizeof...(Post) != 0)
+    auto transform_N(transform_N_args) {
+        return T{f(std::get<Elm>(x)), std::get<Post>(x)...};
+    }
+
+    transform_N_template
+    requires (sizeof...(Pre) != 0) && (sizeof...(Post) == 0)
+    auto transform_N(transform_N_args) {
+        return T{std::get<Pre>(x)..., f(std::get<Elm>(x))};
+    }
+
+    transform_N_template
+    requires (sizeof...(Pre) == 0) && (sizeof...(Post) == 0)
+    auto transform_N(transform_N_args) {
+        return T{f(std::get<Elm>(x))};
+    }
+
+    template <size_t Elm, template <typename...> typename T, typename Func, typename... Types>
+    auto transform_N(const T<Types...>& x, const Func& f) {
+        return transform_N<Elm>(x,
+                                f,
+                                std::make_index_sequence<Elm>(),
+                                map_index_sequence(std::make_index_sequence<sizeof...(Types) - Elm - 1>(),
+                                                   [](size_t s) { return s + Elm + 1; }));
+    }
+    template <size_t Elm, typename Func>
+    auto transform_N(const Func& f) {
+        return [&f] <template <typename...> typename T, typename... Types> (const T<Types...>& x) {
+            return transform_N<Elm>(x, f);
+        };
+    }
 } // namespace ox
 
 #endif // OXLIB_ARRAY_UTILS_H
