@@ -190,39 +190,17 @@ namespace ox {
             return data == other.data;
         }
 
-#ifndef _LIBCPP_VERSION
         constexpr auto operator<=>(const grid2& other) const
         requires(!std::three_way_comparable<Container> && std::three_way_comparable<T>)
         {
             return std::lexicographical_compare_three_way(
                     data.begin(), data.end(), other.data.begin(), other.data.end());
         }
-#else
-        constexpr auto operator<(const grid2& other) const
-        requires(std::three_way_comparable<T>)
-        {
-            return std::lexicographical_compare(data.begin(), data.end(), other.data.begin(), other.data.end());
-        }
-        constexpr auto operator<=(const grid2& other) const
-        requires(std::three_way_comparable<T>)
-        {
-            return *this < other || *this == other;
-        }
-        constexpr auto operator>=(const grid2& other) const
-        requires(std::three_way_comparable<T>)
-        {
-            return !(*this < other);
-        }
-        constexpr auto operator>(const grid2& other) const
-        requires(std::three_way_comparable<T>)
-        {
-            return *this != other && *this >= other;
-        }
-#endif
+
         constexpr bool operator==(const grid2& other) const
         requires(!std::equality_comparable<Container> && std::equality_comparable<T>)
         {
-            auto [it1, it2] = std::mismatch(data.begin(), data.end(), other.begin(), other.end());
+            auto [it1, it2] = std::mismatch(data.begin(), data.end(), other.data.begin(), other.data.end());
             return it1 == data.end() && it2 == data.end();
         }
 
