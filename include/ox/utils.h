@@ -5,4 +5,13 @@
 #include "utils/_bitset_container.h"
 #include "utils/_concepts.h"
 
+namespace ox {
+    template <class... Ts>
+    struct overload : Ts... {
+        using Ts::operator()...;
+    };
+    template <class... Ts>
+    overload(Ts...) -> overload<Ts...>;
+}
+
 #endif //OXLIB_UTILS_H
