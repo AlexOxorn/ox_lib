@@ -9,7 +9,6 @@
 namespace ox {
 
 #define DEFINE_COMBINATOR(Func) constexpr inline auto Func = Func##_t();
-
     auto binary(const auto& f) {
         return [f](const auto x, const auto& y) {
             return f(x)(y);

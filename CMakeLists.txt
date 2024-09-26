@@ -75,6 +75,7 @@ add_headers(
         infinite_grid.h
         polygon.h
         combinators.h
+        future/vector_format.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 
