@@ -50,11 +50,12 @@ namespace ox {
 
         static auto get_multiplication_stream(const matrix& lhs, const matrix& rhs) {
             return std::views::iota(std::size_t(0), rhs.get_width() * lhs.get_height())
-                 | std::views::transform([&](std::size_t index) -> int {
+                 | std::views::transform([&](std::size_t index) {
                        std::pair coord = std::make_pair(index % rhs.get_width(), index / rhs.get_width());
-                       int sum = 0;
+                       T sum{};
                        for (int i : stdv::iota(std::size_t(0), lhs.get_width())) {
-                           sum += lhs.at(i, coord.second) * rhs.at(coord.first, i);
+                           auto prod = lhs.at(i, coord.second) * rhs.at(coord.first, i);
+                           sum += prod;
                        }
                        return sum;
                    });
@@ -105,8 +106,8 @@ namespace ox {
 
         template <typename Scalar>
         requires requires(T t, Scalar s) {
-                     { t* s } -> std::convertible_to<T>;
-                 }
+            { t* s } -> std::convertible_to<T>;
+        }
         constexpr matrix& operator*=(const Scalar& i) {
             std::transform(this->data.begin(), this->data.end(), this->data.begin(), [&i](T a) { return a * i; });
             return *this;
@@ -114,8 +115,8 @@ namespace ox {
 
         template <typename Scalar, typename... TemplateArgs>
         requires requires(T t, Scalar s) {
-                     { t* s } -> std::convertible_to<T>;
-                 }
+            { t* s } -> std::convertible_to<T>;
+        }
         constexpr inline friend matrix<TemplateArgs...> operator*(const Scalar& s, const matrix<TemplateArgs...>& m) {
             auto cpy = m;
             cpy *= s;
@@ -124,8 +125,8 @@ namespace ox {
 
         template <typename Scalar>
         requires requires(T t, Scalar s) {
-                     { t / s } -> std::convertible_to<T>;
-                 }
+            { t / s } -> std::convertible_to<T>;
+        }
         constexpr matrix& operator/=(const Scalar& i) {
             std::transform(this->data.begin(), this->data.end(), this->data.begin(), [&i](T a) { return a / i; });
             return *this;
@@ -133,8 +134,8 @@ namespace ox {
 
         template <typename Scalar, typename... TemplateArgs>
         requires requires(T t, Scalar s) {
-                     { t / s } -> std::convertible_to<T>;
-                 }
+            { t / s } -> std::convertible_to<T>;
+        }
         constexpr inline matrix operator/(const Scalar& s) {
             auto cpy = *this;
             cpy /= s;
@@ -170,6 +171,10 @@ namespace ox {
         {
             this->leveled_foreach([width](T i) { std::cout << std::setw(width + 1) << i; },
                                   []() { std::cout << '\n'; });
+        }
+
+        void print_matrix() {
+            this->leveled_foreach([](T i) { std::cout << i << ", "; }, []() { std::cout << '\n'; });
         }
     };
 } // namespace ox
