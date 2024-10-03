@@ -76,6 +76,7 @@ add_headers(
         polygon.h
         combinators.h
         future/vector_format.h
+        future/generator.h
 )
 add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
 

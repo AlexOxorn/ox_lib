@@ -35,10 +35,10 @@ namespace ox {
         using size_type = std::size_t;
 
         template <typename... I>
-        constexpr explicit grid(int _width, I... args) : grid2<T, 2, Container>(index_data(), args...) {
+        constexpr explicit grid(long _width, I... args) : grid2<T, 2, Container>(index_data(), args...) {
             set_width(_width);
         };
-        constexpr explicit grid(int _width, std::initializer_list<T> args) :
+        constexpr explicit grid(long _width, std::initializer_list<T> args) :
                 grid2<T, 2, Container>(index_data(), args) {
             set_width(_width);
         };
@@ -146,12 +146,12 @@ namespace ox {
         auto rows_view() { return std::ranges::chunk_view(data, get_width()); }
 
         auto column_view() const {
-            return std::ranges::iota_view(0zu, dimensions[0]) | std::views::transform([](size_t l) {
+            return std::ranges::iota_view(0zu, dimensions[0]) | std::views::transform([this](size_t l) {
                        return std::ranges::subrange(data.begin() + l, data.end()) | std::views::stride(dimensions[0]);
                    });
         }
         auto column_view() {
-            return std::ranges::iota_view(0zu, dimensions[0]) | std::views::transform([](size_t l) {
+            return std::ranges::iota_view(0l, dimensions[0]) | std::views::transform([this](size_t l) {
                        return std::ranges::subrange(data.begin() + l, data.end()) | std::views::stride(dimensions[0]);
                    });
         }
