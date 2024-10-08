@@ -1,5 +1,5 @@
-#ifndef ADVENTOFCODE__CONCEPTS_H
-#define ADVENTOFCODE__CONCEPTS_H
+#ifndef OXLIB__CONCEPTS_H
+#define OXLIB__CONCEPTS_H
 
 #define OX_CHAINED_CONCEPTS(namespace1, type_transformation, namespace2, concept_name) \
 template<typename T>\
@@ -12,4 +12,4 @@ namespace ox {
     OX_CHAINED_CONCEPTS(std, remove_reference, std, integral);
 }
 
-#endif // ADVENTOFCODE__CONCEPTS_H
+#endif // OXLIB__CONCEPTS_H

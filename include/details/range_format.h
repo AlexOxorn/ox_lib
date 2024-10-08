@@ -2,8 +2,8 @@
 // Created by alexoxorn on 9/23/24.
 //
 
-#ifndef ADVENTOFCODE_RANGE_FORMAT_H
-#define ADVENTOFCODE_RANGE_FORMAT_H
+#ifndef OXLIB_RANGE_FORMAT_H
+#define OXLIB_RANGE_FORMAT_H
 
 #ifndef __cpp_lib_format_ranges
 #include <format>
@@ -52,4 +52,4 @@ struct range_formatter {
 };
 #endif
 
-#endif // ADVENTOFCODE_RANGE_FORMAT_H
+#endif // OXLIB_RANGE_FORMAT_H

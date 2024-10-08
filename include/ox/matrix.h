@@ -1,6 +1,6 @@
-#ifndef ADVENTOFCODE_MATRIX_H
-#define ADVENTOFCODE_MATRIX_H
+#ifndef OXLIB_MATRIX_H
+#define OXLIB_MATRIX_H
 
 #include "containers/_matrix.h"
 
-#endif // ADVENTOFCODE_MATRIX_H
+#endif // OXLIB_MATRIX_H

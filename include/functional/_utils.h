@@ -2,8 +2,8 @@
 // Created by alexoxorn on 25/09/24.
 //
 
-#ifndef ADVENTOFCODE_UTILS_H
-#define ADVENTOFCODE_UTILS_H
+#ifndef OXLIB_UTILS_H
+#define OXLIB_UTILS_H
 
 #include <concepts>
 
@@ -41,4 +41,4 @@ namespace ox {
     };
 } // namespace ox
 
-#endif // ADVENTOFCODE_UTILS_H
+#endif // OXLIB_UTILS_H

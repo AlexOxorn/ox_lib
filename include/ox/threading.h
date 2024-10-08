@@ -1,8 +1,8 @@
-#ifndef ADVENTOFCODE_THREADING_H
-#define ADVENTOFCODE_THREADING_H
+#ifndef OXLIB_THREADING_H
+#define OXLIB_THREADING_H
 
 #include "../multithreading/threadsafe_queue.h"
 #include "../multithreading/threadpool.h"
 #include "../multithreading/joiner.h"
 
-#endif // ADVENTOFCODE_THREADING_H
+#endif // OXLIB_THREADING_H

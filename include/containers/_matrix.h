@@ -1,5 +1,5 @@
-#ifndef ADVENTOFCODE__MATRIX_H
-#define ADVENTOFCODE__MATRIX_H
+#ifndef OXLIB__MATRIX_H
+#define OXLIB__MATRIX_H
 
 #include "_2d_grid.h"
 #include <ox/math.h>
@@ -179,4 +179,4 @@ namespace ox {
     };
 } // namespace ox
 
-#endif // ADVENTOFCODE__MATRIX_H
+#endif // OXLIB__MATRIX_H

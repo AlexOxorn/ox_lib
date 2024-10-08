@@ -1,7 +1,7 @@
 
 
-#ifndef ADVENTOFCODE_POLYGON_IMP_H
-#define ADVENTOFCODE_POLYGON_IMP_H
+#ifndef OXLIB_POLYGON_IMP_H
+#define OXLIB_POLYGON_IMP_H
 
 #include <type_traits>
 #include <vector>
@@ -56,4 +56,4 @@ namespace ox {
 
 } // namespace ox
 
-#endif // ADVENTOFCODE_POLYGON_IMP_H
+#endif // OXLIB_POLYGON_IMP_H

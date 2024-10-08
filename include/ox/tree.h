@@ -1,6 +1,6 @@
-#ifndef ADVENTOFCODE_TREE_H
-#define ADVENTOFCODE_TREE_H
+#ifndef OXLIB_TREE_H
+#define OXLIB_TREE_H
 
 #include "containers/_binary_tree.h"
 
-#endif // ADVENTOFCODE_TREE_H
+#endif // OXLIB_TREE_H
