@@ -53,8 +53,12 @@ namespace ox {
             parent = nullptr;
             if (b.children.first)
                 emplace_left(b.get_left_child());
+            else
+                children.first.reset();
             if (b.children.second)
                 emplace_right(b.get_right_child());
+            else
+                children.second.reset();
             return *this;
         }
 

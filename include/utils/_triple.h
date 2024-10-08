@@ -13,10 +13,10 @@ namespace ox {
             };
             T data[3];
         };
-        auto begin() { return stdr::begin(data); }
-        auto end() { return stdr::end(data); }
-        auto begin() const { return stdr::begin(data); }
-        auto end() const { return stdr::end(data); }
+        auto begin() { return std::ranges::begin(data); }
+        auto end() { return std::ranges::end(data); }
+        auto begin() const { return std::ranges::begin(data); }
+        auto end() const { return std::ranges::end(data); }
 
         triple(T x, T y, T z) : x{x}, y{y}, z{z} {};
         triple() : data{} {}

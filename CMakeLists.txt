@@ -78,7 +78,7 @@ add_headers(
         future/vector_format.h
         future/generator.h
 )
-add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp)
+add_sources(OX_SOURCES terminal.cpp bytes.cpp canvas.cpp file.cpp debug.cpp system_solver.cpp)
 
 add_library(ox ${OX_SOURCES} ${OX_HEADERS})
 add_library(ox::ox ALIAS ox)
