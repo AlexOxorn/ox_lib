@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION "3.16.3")
 
 INCLUDE(FindPkgConfig)
 project(oxlib)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 if (NOT DEFINED OXLIB_MASTER_PROJECT)
   set(OXLIB_MASTER_PROJECT OFF)
