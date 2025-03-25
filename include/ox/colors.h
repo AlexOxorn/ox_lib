@@ -42,6 +42,13 @@ namespace ox {
             redistribute_rgb();
         }
 
+        void darken(double d) {
+            r -= std::min(int(255 * d), r);
+            g -= std::min(int(255 * d), g);
+            b -= std::min(int(255 * d), b);
+            redistribute_rgb();
+        }
+
     private:
         void redistribute_rgb() {
             int threshold = 255;

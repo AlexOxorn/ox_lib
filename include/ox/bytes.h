@@ -91,7 +91,10 @@ namespace ox {
 
     template<scalar_endianable T> requires (!std::is_integral_v<T>)
     void bswap(T* data, int length = 1) {
-        ox::bswap(reinterpret_cast<unsigned_of_size_t<sizeof(T)>*>(data), length);
+        using UT =  unsigned_of_size_t<sizeof(T)>;
+        UT temp = std::bit_cast<UT>(*data);
+        ox::bswap(&temp);
+        *data = std::bit_cast<T>(temp);
     }
 
     template<custom_endianable T>
