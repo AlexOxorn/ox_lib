@@ -407,7 +407,7 @@ namespace stdfuture {
         yield_sequence_awaiter<generator<_Ref, std::remove_cvref_t<_Ref>, _Allocator>>
         yield_value(ranges::elements_of<_Rng, _Allocator>&& x) {
             return [](std::allocator_arg_t,
-                      _Allocator alloc,
+                      [[maybe_unused]] _Allocator alloc,
                       auto&& rng) -> generator<_Ref, std::remove_cvref_t<_Ref>, _Allocator> {
                 for (auto&& e : rng)
                     co_yield static_cast<decltype(e)>(e);

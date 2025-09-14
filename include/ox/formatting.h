@@ -90,11 +90,11 @@ namespace ox {
             sequence.push_back(suffix);
         };
 
-        operator const char*() const {
+        explicit operator const char*() const {
             return sequence.c_str();
         }
 
-        operator const std::string&() const {
+        explicit operator const std::string&() const {
             return sequence;
         }
 
@@ -102,6 +102,13 @@ namespace ox {
             return sequence.c_str();
         }
     };
+
+    template<char suffix, char prefix = '\0'>
+    std::ostream& operator<<(std::ostream& os, const escape_code<suffix, prefix>& code) {
+        return os << static_cast<const char*>(code);
+    }
+
+
 
     using format = escape_code<'m'>;
 
@@ -119,5 +126,28 @@ namespace ox {
     using save_cursor_position = escape_code<'s'>;
     using restore_cursor_position = escape_code<'u'>;
 }
+
+#define MAKE_FORMATTER(X) \
+template<> \
+struct std::formatter<ox:: X> : std::formatter<std::string> { \
+    auto format(ox:: X p, std::format_context& ctx) const { \
+        return formatter<std::string>::format( \
+          std::format("{}", static_cast<const char*>(p)), ctx); \
+    } \
+}; \
+
+MAKE_FORMATTER(format)
+MAKE_FORMATTER(clear_screen)
+MAKE_FORMATTER(clear_line)
+MAKE_FORMATTER(move_cursor)
+MAKE_FORMATTER(move_cursor_up)
+MAKE_FORMATTER(move_cursor_down)
+MAKE_FORMATTER(move_cursor_right)
+MAKE_FORMATTER(move_cursor_left)
+MAKE_FORMATTER(move_cursor_begin_down)
+MAKE_FORMATTER(move_cursor_begin_up)
+MAKE_FORMATTER(move_cursor_column)
+MAKE_FORMATTER(save_cursor_position)
+MAKE_FORMATTER(restore_cursor_position)
 
 #endif

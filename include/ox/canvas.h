@@ -50,6 +50,10 @@ namespace ox{
                     SDL_bool key = SDL_FALSE, color key_color = named_colors::black) : _renderer{_r} {
                 load_from_file(path, key, key_color);
             };
+            texture(SDL_Renderer* _r, unsigned char* data, size_t size,
+                    SDL_bool key = SDL_FALSE, color key_color = named_colors::black) : _renderer{_r} {
+                load_from_array(data, size, key, key_color);
+            };
             texture(SDL_Renderer* _r, TTF_Font* font, const std::string& texture_text, SDL_Color text_color = {0, 0, 0, 0}) : _renderer{_r} {
                 load_from_rendered_text(font, texture_text, text_color);
             };
@@ -58,7 +62,9 @@ namespace ox{
 
             //Loads image at specified path
             bool load_from_file(const std::filesystem::path& path, SDL_bool key = SDL_FALSE, color key_color = named_colors::black);
-            
+
+            bool load_from_array(unsigned char* data, size_t size, SDL_bool key, color key_color);
+
             //Creates image from font string
             bool load_from_rendered_text(TTF_Font* font, const std::string& textureText, SDL_Color textColor );
 
@@ -132,7 +138,9 @@ namespace ox{
         bool load_media(const std::string& name, const std::filesystem::path& path);
 
         bool load_texture(const std::string& name, const std::filesystem::path& path, SDL_bool key = SDL_FALSE, color key_color = named_colors::black);
-        
+
+        bool load_texture(const std::string& name, unsigned char* data, size_t size, SDL_bool key = SDL_FALSE, color key_color = named_colors::black);
+
         bool load_text(const std::string& name, const std::filesystem::path& ttf_path, int size, const std::string& s, SDL_Color color = {0, 0, 0, 0});
 
         bool successful_init() const {

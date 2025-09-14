@@ -85,6 +85,15 @@ namespace ox{
         return true;
     }
 
+    bool sdl_instance::load_texture(const std::string& name, unsigned char* data, size_t size, SDL_bool key, color key_color) {
+        texture new_texture{screen_renderer(), data, size, key, key_color};
+        if (!new_texture) {
+            return false;
+        }
+        insert_or_overwrite(textures, name, std::move(new_texture));
+        return true;
+    }
+
     bool sdl_instance::load_text(const std::string& name, const std::filesystem::path& ttf_path, int size, const std::string& s, SDL_Color color) {
         sdl_font font{TTF_OpenFont(ttf_path.c_str(), size)};
         texture new_texture{screen_renderer(), font.get(), s, color};
@@ -106,6 +115,24 @@ namespace ox{
         _texture = sdl_texture{SDL_CreateTextureFromSurface(_renderer, loaded_surface.get() )};
         if (!_texture) {
             printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+            return false;
+        }
+        _width = loaded_surface->w;
+        _height = loaded_surface->h;
+        return true;
+    }
+
+    bool sdl_instance::texture::load_from_array(unsigned char* data, size_t size, SDL_bool key, color key_color) {
+        sdl_surface loaded_surface{IMG_Load_RW(SDL_RWFromMem(data, size), 1)};
+        if( loaded_surface == nullptr ) {
+            printf( "Unable to load image! SDL_image Error: %s\n", IMG_GetError() );
+            return false;
+        }
+        //Color key image
+        SDL_SetColorKey( loaded_surface.get(), key, sdl_color(loaded_surface.get(), key_color) );
+        _texture = sdl_texture{SDL_CreateTextureFromSurface(_renderer, loaded_surface.get() )};
+        if (!_texture) {
+            printf( "Unable to create texture! SDL Error: %s\n", SDL_GetError() );
             return false;
         }
         _width = loaded_surface->w;
